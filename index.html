@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" href="data:," />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#162c2c" />
+    <meta name="theme-color" content="#172c46" />
     <title>Pedestrian's Living Hell · 行人地獄</title>
     <link rel="stylesheet" href="./src/style.css" />
   </head>
@@ -15,56 +15,21 @@
           ><span class="brand-icon">行</span><span data-i18n="brand"></span
         ></a>
         <div class="header-end">
-          <span class="edition" data-i18n="edition"></span
+          <span class="edition">P0.1</span
           ><button id="language" type="button">繁體中文</button>
         </div>
       </header>
-      <section class="intro">
-        <div>
-          <div class="eyebrow" data-i18n="eyebrow"></div>
-          <h1 data-i18n="heading"></h1>
-          <p data-i18n="subtitle"></p>
-        </div>
-        <div class="location">
-          <span class="location-dot"></span><span data-i18n="location"></span>
-        </div>
-      </section>
-      <div class="game-layout">
-        <section class="scene-shell" data-i18n-aria="sceneLabel">
-          <div class="scene-top">
-            <span data-i18n="scene"></span
-            ><span><i></i><span data-i18n="live"></span></span>
-          </div>
-          <div class="canvas-wrap">
-            <canvas id="game" width="960" height="640" tabindex="0"></canvas>
-            <div id="overlay">
-              <div class="overlay-card">
-                <div class="eyebrow" id="overlay-kicker"></div>
-                <h2 id="overlay-title"></h2>
-                <p id="overlay-copy"></p>
-                <button id="action" type="button"></button
-                ><small data-i18n="keyboardStart"></small>
-              </div>
-            </div>
-          </div>
-          <div class="scene-bottom">
-            <span data-i18n="route"></span><span data-i18n="sceneNote"></span>
-          </div>
-        </section>
-        <aside>
-          <div class="objective">
-            <span class="section-label" data-i18n="objectiveLabel"></span>
-            <h2 data-i18n="objective"></h2>
-            <p data-i18n="objectiveCopy"></p>
-            <div class="route-key">
-              <span class="you-dot"></span><span data-i18n="you"></span
-              ><span class="route-line"></span><span class="home-dot">⌂</span
-              ><span data-i18n="home"></span>
-            </div>
-          </div>
-          <div class="signal-panel">
-            <span class="section-label" data-i18n="crossingSignal"></span>
-            <div class="signal-state">
+      <section class="scene-shell" data-i18n-aria="sceneLabel">
+        <div class="canvas-wrap">
+          <canvas
+            id="game"
+            width="960"
+            height="716"
+            tabindex="0"
+            aria-describedby="controls-hint"
+          ></canvas>
+          <div class="hud" id="hud">
+            <div class="signal-state" role="status" aria-live="polite">
               <span id="signal-icon" aria-hidden="true"
                 ><svg
                   width="21"
@@ -85,37 +50,31 @@
                   <path
                     d="M11 9 L8 16 L5 24 M8 16 L13 19 L14 24 M10 10 L15 14 L18 14 M10 10 L6 10 L3 15"
                   /></svg></span
-              ><strong id="signal-label"></strong>
+              ><strong id="signal-label"></strong
+              ><span id="countdown" aria-hidden="true"></span>
             </div>
-            <p id="signal-copy"></p>
-            <div class="signal-track"><div id="signal-progress"></div></div>
-            <div class="signal-meta">
-              <span data-i18n="nextChange"></span><span id="countdown"></span>
+            <span class="hud-goal" data-i18n="objective"></span>
+          </div>
+          <div
+            id="overlay"
+            role="dialog"
+            aria-labelledby="overlay-title"
+            aria-describedby="overlay-copy"
+          >
+            <div class="overlay-card">
+              <div class="eyebrow" id="overlay-kicker"></div>
+              <h1 id="overlay-title"></h1>
+              <p id="overlay-copy"></p>
+              <p id="opening-controls" data-i18n="controlsCopy"></p>
+              <button id="action" type="button"></button
+              ><small data-i18n="keyboardStart"></small>
             </div>
           </div>
-          <div id="hazard-panel" role="status" aria-live="polite">
-            <span class="section-label" data-i18n="streetNote"></span>
-            <p id="street-message"></p>
-          </div>
-          <div class="controls">
-            <span class="section-label" data-i18n="controls"></span>
-            <div class="keys">
-              <kbd>W</kbd><span></span><kbd>↑</kbd>
-              <div><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
-              <span class="or" data-i18n="or"></span>
-              <div><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></div>
-            </div>
-            <p data-i18n="controlsCopy"></p>
-            <button
-              class="text-button"
-              id="restart"
-              data-i18n="restart"
-            ></button>
-          </div>
-        </aside>
-      </div>
+        </div>
+      </section>
       <footer>
-        <span data-i18n="footer"></span><span data-i18n="pilot"></span>
+        <span id="controls-hint" data-i18n="controlsHint"></span
+        ><button id="restart" data-i18n="restart" type="button"></button>
       </footer>
     </main>
     <script type="module" src="./src/main.js"></script>

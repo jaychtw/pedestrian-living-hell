@@ -1,55 +1,40 @@
-# P0 validation record
+# P0.1 validation
 
-Validated in the cloud execution workspace using Node 24.19.0, npm 11.9.0, playwright-core 1.58.2 and system Chromium. No production build is necessary: native browser modules are served directly.
+Node 24.19.0, npm 11.9.0, playwright-core 1.58.2 and system Chromium. Native browser modules require no production build.
 
-## Executed automated checks
+## Executed checks
 
-`npm test`: **13 passed, 0 failed, 0 skipped**.
+`npm test`: **16 passed, 0 failed, 0 skipped**. The original 13 logic checks remain, with the intentionally changed violation timing updated. Three checks were added for unchanged feet collision boundaries after art enlargement, four-plus seconds of visible constant-speed approach, and exact localized death headlines with predictive warning resources absent.
 
-- Full signal cycle, exclusive WALK and clearance intervals.
-- All four vehicle classes stopping at red in all four directions.
-- Committed traffic clears the junction.
-- Deterministic timetable and exactly one controlled violation per cycle.
-- Repeated successful cautious crossings at the beginning of WALK.
-- Reproducible collision when leaving late without checking the runner.
-- Movement permitted on pedestrian red.
-- Solid building collision.
-- Normalized diagonal movement and world limits.
-- Vehicle following distance.
-- Translation key parity, nonempty strings, exact completion copy and storage failure fallback.
-- Clean retry state.
-- Safe crossing after waiting for the observed violating scooter to pass.
+The suite covers signal phases/clearance; all four classes stopping at red in all four directions; committed traffic clearing; reproducibility; early cautious crossing; late collision; illegal walking; solid buildings; diagonal speed/world bounds; following distance; translation parity/storage fallback; clean retry; and waiting for the runner before crossing.
 
-`npm run test:browser`, while the development server was running: **10 passed**.
+`npm run test:browser`, with the server running: **12 checks passed**:
 
-1. English start flow, running Canvas scene and normal traffic.
-2. Traditional Chinese toggles live without resetting time; survives reload.
-3. Cautious crossing reaches home; success copy switches in place.
-4. Scooter passes its stop line during WALK with a visible warning.
-5. Collision, failure translations and retry reset.
-6. Real keyboard input moves the amber pedestrian into the road during red.
-7. Animation loop sampled **61 frames over about one second** in headless Chromium.
-8. No horizontal overflow at the compact 720-pixel viewport.
-9. All 16 vehicle class/direction appearances rendered into a review sheet.
-10. No browser runtime or console errors during the flows.
+1. English opening and normal traffic; the desktop opening card leaves the player visible.
+2. Immediate Chinese switching without reset and language persistence on reload.
+3. Reachable home and exact bilingual completion messages.
+4. Red-light runner crosses during WALK with no predictive panel or sidebar.
+5. Exact English/Chinese death headlines, selected-language copy, large single-line Chinese headline and visible keyboard retry.
+6. Waiting for the unannounced scooter to pass allows a safe crossing.
+7. Normal/violating scooters produce identical rendered pixels at the same position; the player renders above an overlapping bus; feet bounds are unchanged.
+8. Real keyboard movement on pedestrian red in ordinary animation mode.
+9. At least 30 animation frames over a one-second sample; observed approximately 61 on this instance. This is a smoke check, not a hardware benchmark.
+10. No horizontal overflow at 1280, 1024 and 720 pixels; the canvas remains the dominant element.
+11. All 16 directional vehicle appearances render in a review sheet.
+12. No browser runtime, console or failed-request errors.
 
-Browser automation uses explicit `?test` mode for simulation time advancement; ordinary play has no test hook. Real keyboard input is separately tested in normal animation mode. The sprite sheet is rendered in a temporary test document, not exposed as a gameplay menu. Screenshots are generated in ignored `artifacts/screenshots/` on each run. The reviewed captures in `docs/screenshots/` were copied from the validated application.
+Only intentionally superseded browser expectations changed: the old longer copy, sidebar, advance scooter warning and understated failure headline. The remaining P0 flows are retained.
 
-## Visual inspection
+`BASE_URL` allows the same suite to exercise a project subpath or the GitHub Pages deployment. Screenshots are written to ignored `artifacts/screenshots/` or `SCREENSHOT_DIR`; reviewed captures were copied to `docs/screenshots/p01/`. Ordinary play has no test hook; deterministic browser scenarios explicitly use `?test`. Real input is separately checked without that hook.
 
-Actual Chromium screenshots were opened and inspected for English/Chinese layout, unobstructed road sightlines, the violation warning, shop signage, the four directional appearances and the home marker. Lane arrows and the pedestrian status icon were corrected following inspection. Vertical vehicles were refined into front/rear elevations rather than roof views. These are source-authored pixel sprites, not external image assets.
+## Visual inspection and corrections
 
-## Fixes found during verification
+Actual screenshots were opened at desktop display size and at 720px. Inspected the brighter active street, opening card, both death screens, Chinese glyphs, character contrast and sprite directions. An initial Chinese death heading left its final character on a separate line; font sizing was changed to follow the canvas width, and a single-line-height assertion now prevents that regression. The opening card was moved left on desktop so it does not cover the player.
 
-- The environment's default npm cache was unwritable; installs now explicitly use `/workspace/.cache/npm`.
-- A bus originally stopped before the runner's route and prevented the violation. Its departure was adjusted and the actual violation is asserted.
-- Partial directional input from browser scenario controls produced invalid coordinates. Input normalization now treats absent directions as false.
-- An initial sprite-review harness replaced the live game's DOM and triggered a callback error. Review now uses a separate document; the final full browser run has no runtime errors.
+No reference images were attached, so comparison with them remains unavailable. [The review](P01-REVIEW.md) assesses composition, sprite quality and Taiwanese identity separately and records shortcomings against the five concerns in the brief. No claim is made that brighter colours alone satisfy the art direction.
 
-## Limitations and assessment
+## Limits
 
-The intended mechanical loop is demonstrated: lawful signals usually matter, ignoring a warned exception causes a repeatable failure, waiting for it permits a safe arrival, and illegal walking remains possible. There has been no human playtest; long-term engagement, difficulty and subjective art acceptance remain unproven.
+Human playtesting has not been performed. Recognition time, subjective art acceptance, dramatic impact, fairness perception and engagement cannot be proved by these checks. Only Chromium was run; Firefox/Safari, touch and audio are outside this correction. The single fixed scenario remains intentionally repeatable. Decorative furniture remains non-solid. No new map or gameplay system was added.
 
-Only Chromium and one desktop environment were exercised. The animation sample is a smoke check, not a performance guarantee. Touch controls and audio are not implemented. Decorative planters and street furniture have no colliders. The deterministic 30-second scenario is intentionally learnable, and one early illegal rush can succeed during a gap. Vehicles do not turn or change lanes. The missing GDD could introduce constraints that were not available for review.
-
-The local server was started and tested in this instance. Installation/startup instructions are saved as a configuration draft; saving does not publish the environment. Fresh-task restoration is not verified, and the initial commit is local until explicitly pushed to GitHub through an authorized workflow.
+The repository's existing GitHub Actions workflow deploys pushes to `main`; current deployment status is available in Actions. Local validation and deployment success are distinct, and this record describes the local checks above.

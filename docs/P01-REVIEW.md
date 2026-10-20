@@ -1,0 +1,36 @@
+# P0.1 revision assessment
+
+Compared against baseline commit `f964a46` and the supplied P0.1 revision brief. The original mission and Pilot P0 implementation requirements remain in force except where this corrective brief intentionally changes presentation or hazard announcements.
+
+## Changes
+
+- Rebuilt the palette by surface: cyan sky and blue distant skyline, cool charcoal asphalt, warm stone paving, individually coloured storefronts and vehicles, strong dark outlines and bright highlights.
+- Added a decorative skyline outside the unchanged gameplay world. Façades now have contrasting windows, flower boxes, striped awnings, shop counters with cups/bowls/produce, lanterns, a menu board, clothes and tank detail. Existing shopfronts, scooters, road markings and low blocks retain the Taiwanese setting without adding map area.
+- Enlarged the player from roughly 18 × 30 to 34 × 52 pixels, with a yellow cap, pink jacket, blue backpack, white shoes, a pale outline and small ground shadow. The player draws last; the 12 × 11 feet hitbox is unchanged. The desktop opening card leaves the player visible.
+- Replaced the sidebar, editorial introduction, numbered panels and long persistent instructions with the street, compact pedestrian signal/countdown and destination. Controls/objective appear before play; a short keyboard hint and restart remain below it. Accessibility names, dialog labels, focus indicators, signal status and keyboard retry remain.
+- Replaced failure with a dark, high-contrast overlay, large selected-language headline and clear retry button. Exact headlines: **YOU DIED** and **歹勢，你鼠翹翹了**. Chinese font size follows the canvas width and stays on one line; the fade respects reduced-motion settings. Completion copy is unchanged.
+- Removed the predictive warning panel, translated scooter warning, exclamation marker, and motion trail. The runner looks exactly like a normal scooter. Lowered its speed from 165 to 135 and began its approach earlier, yielding about 4.74 seconds of visible approach before the eastern crossing. Most vehicles still obey signals; the violation stays deterministic and avoidable.
+
+## Artistic assessment
+
+The brief refers to two supplied artistic references, but neither image was included in the available attachments. No reference-to-result comparison or artistic-parity claim is possible. The following assessment compares the actual running result against the written direction and the old P0 capture.
+
+| Aspect             | Assessment                                                                                                                                                                               | Remaining shortcoming                                                                                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Composition        | The street occupies the main screen; the skyline frames the upper façades, the crosswalk remains clear, and the player/destination are visible to the right of the desktop opening card. | The intersection is still a broad, symmetric authored layout. It lacks the irregular spatial richness of an illustrated Taiwanese street.                         |
+| Sprite quality     | Character silhouette, outfit and backpack are clearer; vehicle classes retain side/front/rear appearances and separated body palettes.                                                   | Vehicles and foliage remain small, simple authored pixel shapes. More carefully shaded bespoke sprites would improve depth and personality.                       |
+| Taiwanese identity | Traditional Chinese storefront signs, tea/noodle shops, awnings, lanterns, scooters, water tanks, AC units, balcony details and red curb sections contribute specific cues.              | These cues describe a fictional street rather than a particular neighbourhood. Visual authenticity still needs review by the user against the missing references. |
+
+## Five playtest concerns
+
+The user's original five questions were not provided. The table below maps the five main experience priorities stated in the revision brief; it does **not** reproduce or invent their original wording.
+
+| Brief priority      | Evidence in P0.1                                                                                                                                          | What remains unproven                                                                                                                                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Visual appeal       | Actual desktop/720px screenshots show the new palette, detailed storefronts and sky.                                                                      | Reference parity and subjective appeal require the missing images and user review.                                                                                                           |
+| Find the pedestrian | Larger contrasted sprite, player-last layering, unchanged small feet hitbox; the desktop opening card avoids covering the character.                      | Recognizing the player within one second requires a timed first-time human playtest.                                                                                                         |
+| UI clarity          | No sidebar; larger text; short pre-play instructions; compact in-play signal/goal. English and Chinese screens were exercised.                            | Comprehension for first-time players and readability on unusual displays are not established by automation.                                                                                  |
+| Death feedback      | Both exact localized headlines are large and centered; Chinese stays on one line; visible retry and keyboard retry pass.                                  | Subjective dramatic impact has not been assessed by a human playtester.                                                                                                                      |
+| Observe and react   | No predictive text or special runner art. Constant-speed visible approach exceeds four seconds; late crossing fails and waiting for the scooter succeeds. | Whether most new players naturally notice the approaching scooter and feel fair tension needs observation. The fixed scenario remains learnable, and a traffic gap can permit an early rush. |
+
+No new gameplay systems were added. Further iteration should start with reference review and human playtesting, not extra content.

@@ -106,7 +106,7 @@ const SCHEDULE = [
   { at: 5.6, kind: "bus", lane: 3 },
   { at: 8, kind: "scooter", lane: 2 },
   { at: 10, kind: "truck", lane: 3 },
-  { at: 18.8, kind: "scooter", lane: 0, violator: true, speed: 165 },
+  { at: 17.8, kind: "scooter", lane: 0, violator: true, speed: 135 },
   { at: 23, kind: "truck", lane: 0 },
   { at: 24, kind: "sedan", lane: 1 },
 ];

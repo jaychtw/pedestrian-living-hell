@@ -17,7 +17,7 @@ let last = 0,
   previousUi = "";
 function localize() {
   document.documentElement.lang = language;
-  document.title = `${t("brand")} · P0`;
+  document.title = `${t("brand")} · P0.1`;
   $('[id="language"]').textContent = language === "en" ? "繁體中文" : "English";
   document
     .querySelectorAll("[data-i18n]")
@@ -41,23 +41,22 @@ function begin() {
 }
 function updateUI() {
   const phase = phaseAt(game.time),
-    hazard = game.vehicles.some((v) => v.violator && v.x < 1050),
-    time = Math.ceil(phase.left),
-    ui = `${phase.walk}:${time}:${hazard}:${language}:${document.hidden}`;
+    time = Math.ceil(phase.left);
+  const ui = `${phase.walk}:${time}:${language}:${document.hidden}`;
   if (ui !== previousUi) {
-    $("#signal-label").textContent = t(phase.walk ? "walk" : "wait");
-    $("#signal-icon").style.color = phase.walk ? "#c5dda0" : "#eea279";
-    $("#signal-copy").textContent = t(phase.walk ? "walkCopy" : "waitCopy");
+    const label = t(document.hidden ? "paused" : phase.walk ? "walk" : "wait");
+    if ($("#signal-label").textContent !== label)
+      $("#signal-label").textContent = label;
+    $("#signal-icon").style.color = phase.walk ? "#8df5a9" : "#ff9d74";
     $("#countdown").textContent = `${time}${t("timeUnit")}`;
-    $("#street-message").textContent = t(
-      document.hidden ? "paused" : hazard ? "hazardNote" : "normalNote",
-    );
-    $("#hazard-panel").classList.toggle("active", hazard);
     previousUi = ui;
   }
-  $("#signal-progress").style.width = `${(phase.left / phase.duration) * 100}%`;
   if (previousStatus !== game.status) {
     $("#overlay").hidden = game.status === "playing";
+    $("#overlay").className =
+      game.status === "failed" ? "death" : game.status === "won" ? "won" : "";
+    $("#hud").hidden = game.status !== "playing";
+    $("#opening-controls").hidden = game.status !== "start";
     if (game.status !== "playing") {
       const prefix = game.status === "start" ? "start" : game.status;
       for (const [id, key] of [
@@ -67,6 +66,10 @@ function updateUI() {
       ])
         $(`#overlay-${id}`).textContent = t(prefix + key);
       $("#action").textContent = t(prefix + "Action");
+    }
+    if (game.status === "failed" || game.status === "won") {
+      keys.clear();
+      $("#action").focus({ preventScroll: true });
     }
     previousStatus = game.status;
   }
@@ -124,13 +127,6 @@ if (manual) {
         step(game, controls, Math.min(1 / 120, seconds - i / 120));
       updateUI();
       renderer.draw(game, language);
-    },
-    setPlayer(x, y) {
-      game.player.x = x;
-      game.player.y = y;
-    },
-    gallery() {
-      renderer.gallery();
     },
   };
 }

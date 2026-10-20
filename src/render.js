@@ -1,16 +1,21 @@
 import { BUILDINGS, LANES, phaseAt, createVehicle } from "./model.js";
 const P = {
-  asphalt: "#536561",
+  asphalt: "#555873",
   edge: "#c0bdaa",
   walk: "#c8c6ad",
   tile: "#b4b79f",
-  ink: "#293f38",
-  cream: "#f1e7bf",
+  ink: "#252c49",
+  cream: "#fff0cf",
   gold: "#dfb468",
   green: "#719078",
 };
 export function createRenderer(canvas, t) {
-  const ctx = canvas.getContext("2d");
+  const screen = canvas.getContext("2d");
+  const world = document.createElement("canvas");
+  world.width = 960;
+  world.height = 640;
+  const ctx = world.getContext("2d");
+  screen.imageSmoothingEnabled = false;
   ctx.imageSmoothingEnabled = false;
   let bg = null;
   let cacheLanguage = "";
@@ -26,94 +31,171 @@ export function createRenderer(canvas, t) {
     ctx.fillText(s, Math.round(x), Math.round(y));
     ctx.textAlign = "left";
   }
-  function line(x, y, w, h, c) {
-    rect(x, y, w, h, c);
+  function present() {
+    // A decorative skyline sits outside the world; physics coordinates do not change.
+    screen.fillStyle = "#43c9ef";
+    screen.fillRect(0, 0, 960, 76);
+    const box = (x, y, w, h, c) => {
+      screen.fillStyle = c;
+      screen.fillRect(x, y, w, h);
+    };
+    box(0, 0, 960, 19, "#32b9ed");
+    box(0, 55, 960, 21, "#83def2");
+    for (const [x, y, w] of [
+      [33, 13, 86],
+      [247, 25, 61],
+      [574, 9, 91],
+      [824, 20, 74],
+    ]) {
+      box(x, y, w, 12, "#d4f7ff");
+      box(x + 14, y - 8, w - 32, 11, "#fff9e9");
+      box(x - 9, y + 7, w + 22, 6, "#effaff");
+      box(x + 15, y + 13, w - 15, 3, "#a2e6f6");
+    }
+    for (let i = 0; i < 17; i++) {
+      const x = i * 61,
+        top = 47 + ((i * 13) % 20);
+      box(x, top, 44, 76 - top, i % 2 ? "#6fbcd2" : "#91c9d3");
+      box(x + 6, top - 4, 31, 4, "#b2e1e2");
+      for (let wx = x + 7; wx < x + 39; wx += 12)
+        box(wx, top + 7, 5, 8, "#aedee4");
+    }
+    screen.drawImage(world, 0, 76);
   }
   function planter(x, y) {
-    rect(x - 15, y + 9, 32, 15, "#8d8c72");
-    rect(x - 12, y + 22, 26, 4, "#6a7664");
-    rect(x - 2, y - 5, 5, 21, "#6a7056");
-    rect(x - 17, y - 14, 29, 22, "#456e54");
-    rect(x - 11, y - 25, 25, 25, "#557e59");
-    rect(x - 20, y - 9, 37, 12, "#628962");
-    rect(x - 9, y - 19, 12, 8, "#78996a");
-    rect(x + 8, y - 6, 8, 8, "#3c654d");
+    rect(x - 18, y + 7, 37, 21, "#343950");
+    rect(x - 15, y + 8, 31, 16, "#cd7853");
+    rect(x - 18, y + 7, 37, 5, "#f4ae6f");
+    rect(x - 13, y + 20, 26, 3, "#a34f48");
+    rect(x - 3, y - 9, 6, 20, "#735045");
+    rect(x - 18, y - 18, 32, 28, "#1e624e");
+    rect(x - 14, y - 29, 28, 29, "#228a56");
+    rect(x - 23, y - 14, 43, 20, "#249e57");
+    rect(x - 16, y - 24, 29, 17, "#4ac55e");
+    rect(x - 9, y - 32, 19, 12, "#88d94c");
+    rect(x - 20, y - 10, 15, 10, "#6cd45c");
+    rect(x + 5, y - 15, 12, 10, "#63cd53");
+    rect(x - 13, y - 23, 7, 5, "#b3e568");
+    rect(x + 5, y - 6, 7, 6, "#177c50");
+    rect(x - 11, y + 10, 3, 9, "#f8bf83");
   }
   function window(x, y, w = 28, h = 30) {
-    rect(x, y, w, h, "#3c5b53");
-    rect(x + 3, y + 3, w - 6, h - 6, "#6e8b7f");
-    rect(x + w / 2 - 1, y + 2, 2, h - 4, "#a4b19a");
-    rect(x + 2, y + h / 2, w - 4, 2, "#9eaa92");
-    rect(x + 4, y + 5, 6, h / 2 - 5, "#9cafa0");
-    rect(x - 3, y + h, w + 6, 4, "#b8b69b");
+    rect(x - 2, y - 2, w + 4, h + 4, "#39435d");
+    rect(x, y, w, h, "#3b8da7");
+    rect(x + 3, y + 3, w - 6, h - 6, "#76d2db");
+    rect(x + 3, y + 3, w - 6, 5, "#b6edf0");
+    rect(x + 3, y + h - 10, w - 6, 6, "#3a9caf");
+    rect(x + w / 2 - 1, y + 2, 3, h - 4, "#f3e8c3");
+    rect(x + 2, y + h / 2, w - 4, 3, "#f3e8c3");
+    rect(x - 4, y + h, w + 8, 4, "#e7d8b6");
+    rect(x - 3, y + h + 4, w + 6, 2, "#8c6980");
   }
   function ac(x, y) {
-    rect(x, y, 26, 17, "#a4ab98");
-    rect(x + 3, y + 3, 12, 11, "#748877");
-    for (let i = 0; i < 4; i++) rect(x + 18, y + 3 + i * 3, 6, 1, "#627966");
+    rect(x - 1, y - 1, 28, 19, "#53526b");
+    rect(x, y, 26, 17, "#e4ddd4");
+    rect(x + 3, y + 3, 12, 11, "#8da5b5");
+    rect(x + 6, y + 4, 6, 9, "#617b91");
+    rect(x + 4, y + 7, 10, 2, "#d1e0df");
+    for (let i = 0; i < 4; i++) rect(x + 18, y + 3 + i * 3, 6, 1, "#657b90");
   }
   function facade(x, y, w, h, kind) {
-    const colors =
-      kind === 0
-        ? ["#c8bfa0", "#9d9e82"]
-        : kind === 1
-          ? ["#b9c1a6", "#8d9f89"]
-          : ["#d4c4a2", "#a29d81"];
-    rect(x + 8, y + 10, w, h, "#53695650");
-    rect(x, y, w, h, colors[1]);
-    rect(x + 3, y + 8, w - 6, h - 8, colors[0]);
-    rect(x - 3, y, w + 6, 8, "#697d6b");
-    rect(x + 1, y + 10, w - 2, 3, "#e2d5b1");
-    for (let wx = x + 14; wx < x + w - 20; wx += 44) window(wx, y + 20, 26, 27);
-    ac(x + w - 39, y + 54);
-    rect(x + 3, y + 57, w - 6, 4, "#a6aa8e");
-    const signColor =
-      kind === 0 ? "#47775d" : kind === 1 ? "#a85e45" : "#b49556";
-    rect(x + 6, y + 77, w - 12, 28, signColor);
-    rect(x + 9, y + 80, w - 18, 2, "#d1bb82");
+    const wall = ["#f1c38c", "#f3a18b", "#8ed6cb"][kind],
+      shade = ["#c58674", "#cc746c", "#55a6ad"][kind];
+    const sign = ["#167f83", "#c7494e", "#8058a0"][kind];
+    rect(x + 7, y + 8, w, h, "#2b314a40");
+    rect(x - 2, y, w + 4, h, "#343a56");
+    rect(x + 2, y + 8, w - 4, h - 10, shade);
+    rect(x + 5, y + 10, w - 11, h - 20, wall);
+    rect(x - 4, y - 4, w + 8, 10, "#455674");
+    rect(x - 1, y - 2, w + 2, 4, "#7da2b3");
+    rect(x + 2, y + 8, w - 4, 4, "#ffe4ba");
+    for (let wx = x + 14; wx < x + w - 20; wx += 44) {
+      window(wx, y + 20, 26, 27);
+      // Flower boxes and small balconies break up the repeated upper-storey grid.
+      if ((wx - x) % 3) {
+        rect(wx - 3, y + 52, 33, 6, "#d18c6e");
+        rect(wx, y + 48, 26, 6, "#348955");
+        rect(wx + 3, y + 47, 4, 4, "#ffdb59");
+        rect(wx + 16, y + 48, 4, 4, "#ef6b8b");
+      }
+    }
+    ac(x + w - 35, y + 57);
+    rect(x + 3, y + 71, w - 6, 3, shade);
+    rect(x + 4, y + 76, w - 8, 30, "#303a52");
+    rect(x + 7, y + 78, w - 14, 25, sign);
+    rect(x + 10, y + 80, w - 20, 2, "#ffd5a2");
     text(
       t(["shopTea", "shopFood", "shopMarket"][kind]),
       x + w / 2,
-      y + 91,
+      y + 92,
       18,
-      "#f5e5b3",
+      "#fff2c7",
       "center",
     );
-    rect(x + 10, y + 107, w - 20, h - 109, "#4a6256");
-    for (let wx = x + 15; wx < x + w - 16; wx += 23) {
-      rect(wx, y + 111, 17, h - 119, "#8b9e85");
-      rect(wx + 3, y + 113, 4, h - 123, "#b1bba1");
+    rect(x + 9, y + 109, w - 18, h - 113, "#253d58");
+    for (let wx = x + 15; wx < x + w - 15; wx += 24) {
+      rect(wx, y + 116, 17, h - 126, "#4fa7b1");
+      rect(wx + 2, y + 118, 4, h - 132, "#a5e1d8");
+      rect(wx, y + h - 20, 17, 3, "#e7c887");
     }
-    rect(x + 6, y + h - 7, w - 12, 7, "#6e7d67");
-    for (let a = 0; a < Math.floor(w / 12); a++)
-      rect(x + 3 + a * 12, y + 105, 12, 8, a % 2 ? "#e3d3a8" : signColor);
+    rect(x + 8, y + h - 9, w - 16, 7, "#6b6575");
+    rect(x + 10, y + h - 9, w - 20, 2, "#e4bf91");
+    rect(x + 1, y + 106, w - 2, 4, "#343b54");
+    for (let a = 0; a < Math.ceil((w - 4) / 12); a++) {
+      const aw = Math.min(12, w - 4 - a * 12);
+      rect(x + 2 + a * 12, y + 108, aw, 10, a % 2 ? "#fff0bc" : sign);
+      rect(x + 2 + a * 12, y + 118, aw, 3, a % 2 ? "#d9c59e" : shade);
+    }
+    // Open shopfront counter: cups, bowls, produce, all inside the solid facade.
+    rect(x + 17, y + h - 27, w - 34, 10, "#b37456");
+    rect(x + 17, y + h - 28, w - 34, 3, "#efc58a");
+    for (let i = 0; i < 3; i++) {
+      const bx = x + 23 + (i * (w - 49)) / 3;
+      if (kind === 0) {
+        rect(bx, y + h - 39, 7, 11, "#fff0c2");
+        rect(bx + 1, y + h - 41, 7, 3, "#f4a83d");
+        rect(bx + 4, y + h - 46, 2, 7, "#f8dfad");
+      } else if (kind === 1) {
+        rect(bx, y + h - 36, 14, 5, "#f8e1b1");
+        rect(bx + 3, y + h - 31, 8, 3, "#d4b488");
+        rect(bx + 3, y + h - 40, 8, 3, "#e9be67");
+      } else {
+        rect(bx, y + h - 37, 9, 8, i % 2 ? "#fca64c" : "#9bce4a");
+        rect(bx + 3, y + h - 40, 3, 4, "#348657");
+      }
+    }
   }
   function shortBlock(b, kind) {
-    rect(b.x + 9, b.y + 8, b.w, b.h, "#62756250");
-    rect(b.x, b.y + 18, b.w, b.h - 18, kind ? "#a4b49d" : "#bcb39a");
-    rect(b.x - 3, b.y + 10, b.w + 6, 13, "#87957d");
-    rect(b.x + 2, b.y, b.w - 4, 14, kind ? "#c5c7ab" : "#d2c5a5");
-    rect(b.x + 10, b.y + 4, b.w - 20, 5, "#b8b79a");
+    rect(b.x + 7, b.y + 9, b.w, b.h, "#30385540");
+    rect(b.x - 2, b.y + 12, b.w + 4, b.h - 10, "#374058");
+    rect(b.x, b.y + 18, b.w, b.h - 18, kind ? "#9cd8d6" : "#f3bd85");
+    rect(b.x - 3, b.y + 9, b.w + 6, 12, kind ? "#338e9d" : "#bc6a62");
+    rect(b.x + 1, b.y, b.w - 2, 13, kind ? "#c8ece0" : "#ffe0a1");
+    rect(b.x + 10, b.y + 4, b.w - 20, 4, kind ? "#8bc7c8" : "#e4a66e");
     for (let x = b.x + 17; x < b.x + b.w - 20; x += 46)
-      window(x, b.y + 36, 28, 28);
-    rect(b.x + 12, b.y + 81, b.w - 24, 25, kind ? "#577b68" : "#967458");
+      window(x, b.y + 34, 28, 28);
+    rect(b.x + 10, b.y + 78, b.w - 20, 29, "#333d5a");
+    rect(b.x + 13, b.y + 80, b.w - 26, 24, kind ? "#168e89" : "#d67335");
     text(
       t(kind ? "shopClinic" : "shopRepair"),
       b.x + b.w / 2,
-      b.y + 94,
-      16,
+      b.y + 92,
+      18,
       P.cream,
       "center",
     );
-    for (let x = b.x + 20; x < b.x + b.w - 25; x += 19) {
-      rect(x, b.y + 108, 14, 10, "#566d5c");
+    if (kind) {
+      rect(b.x + 22, b.y + 85, 5, 14, "#fdf7dc");
+      rect(b.x + 18, b.y + 89, 13, 5, "#fdf7dc");
     }
+    for (let x = b.x + 20; x < b.x + b.w - 25; x += 19)
+      rect(x, b.y + 108, 14, 10, "#365e76");
     ac(b.x + b.w - 49, b.y + 31);
   }
   function road() {
-    rect(0, 0, 960, 640, "#b3b69b");
-    rect(0, 234, 960, 221, "#a9ad96");
-    rect(400, 0, 200, 640, "#a9ad96");
+    rect(0, 0, 960, 640, "#ead4ac");
+    rect(0, 234, 960, 221, "#d8b897");
+    rect(400, 0, 200, 640, "#d8b897");
     rect(0, 248, 960, 193, P.asphalt);
     rect(407, 0, 186, 640, P.asphalt);
     // Fixed little flecks make the tarmac read as pixel art rather than a flat fill.
@@ -121,116 +203,130 @@ export function createRenderer(canvas, t) {
       const x = (i * 149 + 31) % 960,
         y = (i * 67 + 17) % 640;
       if ((y > 249 && y < 440) || (x > 408 && x < 592))
-        rect(x, y, 2, 1, i % 2 ? "#5b6d65" : "#4c605b");
+        rect(x, y, 2, 1, i % 2 ? "#60637e" : "#4d526d");
     }
-    rect(0, 245, 402, 3, "#d8cda4");
-    rect(599, 245, 361, 3, "#d8cda4");
-    rect(0, 441, 402, 3, "#d8cda4");
-    rect(599, 441, 361, 3, "#d8cda4");
-    rect(404, 0, 3, 242, "#d8cda4");
-    rect(594, 0, 3, 242, "#d8cda4");
-    rect(404, 447, 3, 193, "#d8cda4");
-    rect(594, 447, 3, 193, "#d8cda4");
+    rect(0, 245, 402, 3, "#ffdf9f");
+    rect(599, 245, 361, 3, "#ffdf9f");
+    rect(0, 441, 402, 3, "#ffdf9f");
+    rect(599, 441, 361, 3, "#ffdf9f");
+    rect(404, 0, 3, 242, "#ffdf9f");
+    rect(594, 0, 3, 242, "#ffdf9f");
+    rect(404, 447, 3, 193, "#ffdf9f");
+    rect(594, 447, 3, 193, "#ffdf9f");
+    for (let y = 236; y < 640; y += 18)
+      for (let x = 8; x < 960; x += 24) {
+        if ((y < 245 || y > 455) && (x < 395 || x > 603))
+          rect(x, y, 20, 1, "#bd9c8138");
+      }
+    for (const [x, y] of [
+      [312, 244],
+      [680, 244],
+      [313, 443],
+      [679, 443],
+    ]) {
+      rect(x, y, 20, 3, "#dd5a55");
+      rect(x + 6, y, 4, 3, "#ffb780");
+    }
     // Double yellow center lines and directional lane dashes.
     for (const y of [341, 347]) {
-      rect(0, y, 325, 2, "#d7bd76");
-      rect(675, y, 285, 2, "#d7bd76");
+      rect(0, y, 325, 2, "#f8c84d");
+      rect(675, y, 285, 2, "#f8c84d");
     }
     for (const x of [497, 503]) {
-      rect(x, 0, 2, 174, "#d7bd76");
-      rect(x, 522, 2, 118, "#d7bd76");
+      rect(x, 0, 2, 174, "#f8c84d");
+      rect(x, 522, 2, 118, "#f8c84d");
     }
     // Four zebra crossings.
     for (let y = 265; y < 427; y += 20) {
-      rect(350, y, 38, 11, "#e1dfc5");
-      rect(614, y, 38, 11, "#e1dfc5");
+      rect(350, y, 38, 11, "#ffefd3");
+      rect(614, y, 38, 11, "#ffefd3");
     }
     for (let x = 414; x < 591; x += 21) {
-      rect(x, 202, 12, 37, "#e1dfc5");
-      rect(x, 458, 12, 37, "#e1dfc5");
+      rect(x, 202, 12, 37, "#ffefd3");
+      rect(x, 458, 12, 37, "#ffefd3");
     }
-    rect(326, 254, 5, 72, "#eee4be");
-    rect(669, 363, 5, 73, "#eee4be");
-    rect(413, 177, 72, 5, "#eee4be");
-    rect(519, 516, 69, 5, "#eee4be");
+    rect(326, 254, 5, 72, "#fff2ce");
+    rect(669, 363, 5, 73, "#fff2ce");
+    rect(413, 177, 72, 5, "#fff2ce");
+    rect(519, 516, 69, 5, "#fff2ce");
     // Lane arrows, authored at pixel scale.
     for (const [x, y, dir] of [
       [195, 300, 1],
       [774, 389, -1],
     ]) {
-      rect(x - 14, y - 2, 28, 4, "#b4c0ac");
+      rect(x - 14, y - 2, 28, 4, "#d3d6d5");
       for (let i = 0; i < 4; i++)
-        rect(x + dir * (i * 4), y - 8 + i * 2, 4, 16 - i * 4, "#b4c0ac");
+        rect(x + dir * (i * 4), y - 8 + i * 2, 4, 16 - i * 4, "#d3d6d5");
     }
     for (const [x, y, dir] of [
       [456, 120, 1],
       [544, 568, -1],
     ]) {
-      rect(x - 2, y - 14, 4, 28, "#b4c0ac");
+      rect(x - 2, y - 14, 4, 28, "#d3d6d5");
       for (let i = 0; i < 4; i++)
-        rect(x - 8 + i * 2, y + dir * (i * 4), 16 - i * 4, 4, "#b4c0ac");
+        rect(x - 8 + i * 2, y + dir * (i * 4), 16 - i * 4, 4, "#d3d6d5");
     }
     for (let x = 12; x < 960; x += 27)
       for (const y of [237, 449])
-        if (x < 397 || x > 602) rect(x, y, 19, 2, "#d2c5a1");
+        if (x < 397 || x > 602) rect(x, y, 19, 2, "#cf967c");
     for (const [x, y] of [
       [305, 228],
       [679, 228],
       [303, 453],
       [684, 453],
     ]) {
-      rect(x, y, 21, 9, "#697d6d");
-      for (let i = 0; i < 5; i++) rect(x + 3 + i * 4, y + 1, 1, 7, "#a4ad92");
+      rect(x, y, 21, 9, "#465673");
+      for (let i = 0; i < 5; i++) rect(x + 3 + i * 4, y + 1, 1, 7, "#94a6b6");
     }
   }
   function scenery() {
     road();
     // Low front-facing row along the upper edge, with water tanks and roof detail.
-    rect(8, 26, 384, 24, "#6a826d");
-    rect(18, 16, 365, 17, "#9baa8c");
-    for (let x = 26; x < 380; x += 27) rect(x, 18, 19, 11, "#b3b99a");
-    rect(48, 0, 36, 19, "#879f8b");
-    rect(44, 5, 44, 4, "#c6ccb0");
-    rect(50, 18, 32, 4, "#617e6b");
+    rect(8, 26, 384, 24, "#476482");
+    rect(18, 16, 365, 17, "#82b4c8");
+    for (let x = 26; x < 380; x += 27) rect(x, 18, 19, 11, "#b6e0df");
+    rect(48, 0, 36, 19, "#b2d3d8");
+    rect(44, 5, 44, 4, "#f1f3d5");
+    rect(50, 18, 32, 4, "#538ba6");
     facade(18, 51, 122, 157, 0);
     facade(143, 51, 139, 157, 1);
     facade(285, 51, 100, 157, 2);
-    rect(687, 32, 255, 16, "#6d8b77");
-    rect(697, 18, 235, 16, "#a5b89c");
-    rect(874, 3, 34, 23, "#8ea994");
-    rect(870, 9, 42, 4, "#ccd3b7");
+    rect(687, 32, 255, 16, "#377f9c");
+    rect(697, 18, 235, 16, "#81c8ce");
+    rect(874, 3, 34, 23, "#b4dada");
+    rect(870, 9, 42, 4, "#f7f0cf");
     facade(700, 49, 220, 171, 0);
-    rect(709, 123, 202, 27, "#547c6e");
+    rect(709, 123, 202, 27, "#327ea0");
     text(t("shopHome"), 810, 137, 19, P.cream, "center");
-    rect(771, 164, 33, 52, "#385b50");
-    rect(775, 167, 25, 45, "#7c9a86");
-    rect(795, 188, 3, 4, "#e7d4a0");
-    rect(709, 220, 200, 6, "#879d81");
+    rect(771, 164, 33, 52, "#2c4a6c");
+    rect(775, 167, 25, 45, "#54b3bf");
+    rect(795, 188, 3, 4, "#ffe7a6");
+    rect(709, 220, 200, 6, "#639fb1");
     // Vertical shop blades and small stools, pots and lanterns.
-    rect(22, 87, 24, 82, "#a4543f");
+    rect(22, 87, 24, 82, "#d6464f");
     for (let i = 0; i < 2; i++)
       text(
         [...t("shopTea")][i] || "",
         34,
         108 + i * 27,
         20,
-        "#f2d6a0",
+        "#fff1ca",
         "center",
       );
-    rect(288, 86, 22, 79, "#e4c876");
+    rect(288, 86, 22, 79, "#ffd568");
     for (let i = 0; i < 3; i++)
       text(
         [...t("shopMarket")][i] || "",
         299,
         101 + i * 22,
         16,
-        "#45684f",
+        "#554675",
         "center",
       );
     for (let x = 164; x < 275; x += 36) {
-      rect(x, 208, 13, 8, "#a56d4e");
-      rect(x + 1, 216, 3, 8, "#886a4d");
-      rect(x + 9, 216, 3, 8, "#886a4d");
+      rect(x, 208, 13, 8, "#e66b42");
+      rect(x + 1, 216, 3, 8, "#944256");
+      rect(x + 9, 216, 3, 8, "#944256");
     }
     for (const [x, y] of [
       [93, 221],
@@ -247,22 +343,50 @@ export function createRenderer(canvas, t) {
     shortBlock(BUILDINGS[3], true);
     // A tiny parked scooter row and roadside utility box.
     for (let i = 0; i < 3; i++) {
-      rect(70 + i * 37, 465, 24, 11, "#6a8170");
-      rect(75 + i * 37, 461, 12, 8, i % 2 ? "#d4bb79" : "#a67c61");
+      rect(70 + i * 37, 465, 24, 11, "#324865");
+      rect(75 + i * 37, 461, 12, 8, i % 2 ? "#54c6d3" : "#e57870");
       rect(72 + i * 37, 474, 6, 4, P.ink);
       rect(87 + i * 37, 474, 6, 4, P.ink);
     }
-    rect(363, 538, 23, 43, "#899b83");
-    rect(366, 541, 17, 25, "#b1b69a");
-    rect(368, 545, 13, 2, "#788e79");
-    rect(372, 571, 6, 2, "#d3c89c");
-    rect(940, 493, 6, 100, "#667d68");
-    rect(935, 490, 16, 7, "#d4c89a");
-    rect(937, 486, 12, 5, "#dbbe76");
+    rect(363, 538, 23, 43, "#7195ba");
+    rect(366, 541, 17, 25, "#bfd6df");
+    rect(368, 545, 13, 2, "#4c759b");
+    rect(372, 571, 6, 2, "#fff0b4");
+    rect(940, 493, 6, 100, "#3f668c");
+    rect(935, 490, 16, 7, "#f5d698");
+    rect(937, 486, 12, 5, "#ffdf71");
+    // Red lanterns, a shop menu and utility wires give each frontage its own rhythm.
+    for (const x of [166, 262]) {
+      rect(x, 161, 2, 11, "#353e58");
+      rect(x - 6, 172, 14, 16, "#a9344e");
+      rect(x - 4, 173, 10, 12, "#ed6a4d");
+      rect(x - 1, 174, 3, 10, "#ffc06b");
+      rect(x, 188, 2, 7, "#e56b52");
+    }
+    rect(114, 175, 19, 26, "#353b52");
+    rect(117, 178, 13, 20, "#e9cb83");
+    for (let i = 0; i < 4; i++) rect(119, 182 + i * 4, 9, 1, "#aa6b49");
+    for (let i = 0; i < 3; i++) {
+      rect(318 + i * 18, 199, 16, 10, "#9b6c4f");
+      rect(320 + i * 18, 196, 5, 6, i % 2 ? "#f67e45" : "#9dd34d");
+      rect(326 + i * 18, 195, 5, 7, "#ffd052");
+    }
+    // A balcony clothesline and water-tank bands live above the action.
+    rect(716, 65, 64, 1, "#4d6180");
+    rect(726, 65, 9, 12, "#e98c9a");
+    rect(743, 65, 10, 14, "#ffe193");
+    rect(762, 65, 9, 11, "#75c7da");
+    for (const [x, y] of [
+      [48, 4],
+      [874, 6],
+    ]) {
+      rect(x, y, 34, 2, "#f7edda");
+      rect(x, y + 8, 34, 2, "#6896b5");
+    }
     // Road-name plates are environmental signage, translated centrally.
-    rect(17, 449, 83, 18, "#477561");
+    rect(17, 449, 83, 18, "#198d91");
     text(t("roadA"), 58, 459, 11, P.cream, "center");
-    rect(601, 26, 20, 75, "#477561");
+    rect(601, 26, 20, 75, "#198d91");
     for (let i = 0; i < 3; i++)
       text([...t("roadB")][i], 611, 40 + i * 20, 13, P.cream, "center");
   }
@@ -279,12 +403,14 @@ export function createRenderer(canvas, t) {
   }
   function marker(x, y, label, color, time, home = false) {
     const bob = Math.round(Math.sin(time * 2) * 2);
-    rect(x - 23, y + 19, 46, 12, "#314e3520");
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.setLineDash([4, 4]);
-    ctx.strokeRect(x - 24, y + 9, 48, 29);
-    ctx.setLineDash([]);
+    if (home) {
+      rect(x - 23, y + 19, 46, 12, "#314e3520");
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(x - 24, y + 9, 48, 29);
+      ctx.setLineDash([]);
+    }
     rect(x - 28, y - 32 + bob, 56, 24, color);
     text(label, x, y - 20 + bob, 12, "#f4efd8", "center");
     rect(x - 3, y - 8 + bob, 6, 4, color);
@@ -302,10 +428,10 @@ export function createRenderer(canvas, t) {
       h = LANES[v.lane].axis === "h",
       positive = v.dir === "east" || v.dir === "south";
     const palette = {
-      scooter: ["#b88c56", "#e1be7a"],
-      sedan: ["#a2b7a2", "#c6d0b0"],
-      bus: ["#b4b58c", "#e0d5a4"],
-      truck: ["#7d9d9a", "#b2beb0"],
+      scooter: ["#d65d43", "#ffa552"],
+      sedan: ["#358cbb", "#81dded"],
+      bus: ["#e19a37", "#ffe38e"],
+      truck: ["#7563a7", "#c0b2dc"],
     }[v.kind];
     const [dark, light] = palette;
     const length = v.length,
@@ -316,6 +442,13 @@ export function createRenderer(canvas, t) {
       h ? length : width,
       h ? width : length,
       "#263f3540",
+    );
+    rect(
+      x - (h ? length : width) / 2 - 1,
+      y - (h ? width : length) / 2 - 1,
+      h ? length + 2 : width + 2,
+      h ? width + 1 : length + 2,
+      P.ink,
     );
     if (v.kind === "scooter") {
       if (h) {
@@ -453,35 +586,52 @@ export function createRenderer(canvas, t) {
       rect(left + 1, bottom - 4, width - 2, 3, "#607b69");
       rect(x - 4, bottom - 4, 8, 2, "#e1d9bd");
     }
-    if (v.violator) {
-      const by = y - 30 - Math.round(Math.sin(time * 8) * 2);
-      rect(x - 7, by - 8, 15, 15, "#e0ad63");
-      text(t("violation"), x + 1, by, 12, "#473e2c", "center");
-      for (let i = 1; i <= 3; i++) rect(x - 20 - i * 9, y - 1, 5, 2, "#d6b16a");
-    }
   }
   function player(p, time) {
     const x = Math.round(p.x),
       y = Math.round(p.y),
       stride = p.walking ? (Math.sin(time * 18) > 0 ? 2 : -2) : 0;
-    rect(x - 8, y + 4, 16, 5, "#314e3544");
-    rect(x - 5, y - 8, 11, 11, "#d7944b");
-    rect(x - 7, y - 7, 3, 8, "#e3b37a");
-    rect(x + 6, y - 7, 3, 8, "#e3b37a");
-    rect(x - 5, y + 3, 4, 5 + stride, "#3b554c");
-    rect(x + 2, y + 3, 4, 5 - stride, "#3b554c");
-    rect(x - 5, y + 7 + stride, 4, 2, "#d5cdad");
-    rect(x + 2, y + 7 - stride, 4, 2, "#d5cdad");
-    rect(x - 5, y - 20, 11, 12, "#d8b182");
-    rect(x - 6, y - 21, 13, 5, "#3c5142");
-    rect(x - 6, y - 18, p.facing === "west" ? 3 : 12, 4, "#3c5142");
-    if (p.facing !== "north") {
-      rect(x + (p.facing === "west" ? -5 : 3), y - 15, 2, 2, "#364c3c");
-    }
+    // Art is 34 × 52; the unchanged 12 × 11 feet box remains in model.js.
+    rect(x - 13, y + 5, 27, 7, "#202c4755");
+    rect(x - 10, y + 7, 21, 3, "#1b294a44");
+    // A pale silhouette keeps the pedestrian readable against traffic and decoration.
+    rect(x - 13, y - 39, 27, 11, "#fff1d5");
+    rect(x - 17, y - 23, 35, 18, "#fff1d5");
+    rect(x - 10, y - 8, 22, 15, "#fff1d5");
+    rect(x - 9, y - 12, 8, 14 + stride, "#262e55");
+    rect(x + 3, y - 12, 8, 14 - stride, "#262e55");
+    rect(x - 9, y + 2 + stride, 9, 4, "#f6f2df");
+    rect(x + 3, y + 2 - stride, 9, 4, "#f6f2df");
+    rect(x - 10, y - 25, 23, 17, "#782f65");
+    rect(x - 8, y - 24, 19, 15, "#f05a88");
+    rect(x - 7, y - 22, 5, 10, "#ff91a7");
+    rect(x - 15, y - 22, 5, 13, "#bd376a");
+    rect(x + 13, y - 22, 4, 13, "#bd376a");
+    rect(x - 15, y - 10, 5, 5, "#f3ba88");
+    rect(x + 13, y - 10, 4, 5, "#f3ba88");
     if (p.facing === "north") {
-      rect(x - 4, y - 8, 9, 9, "#a26a3e");
-      rect(x - 2, y - 6, 5, 6, "#c18343");
+      rect(x - 6, y - 24, 15, 17, "#273c75");
+      rect(x - 4, y - 22, 11, 12, "#4267a2");
+      rect(x - 3, y - 13, 9, 5, "#6c92c2");
+      rect(x - 3, y - 24, 8, 2, "#b0cbdd");
+    } else {
+      rect(x - 4, y - 23, 3, 14, "#fff2c9");
+      rect(x + 6, y - 23, 2, 14, "#fff2c9");
+      rect(x + 1, y - 18, 3, 3, "#f6be68");
     }
+    rect(x - 9, y - 39, 21, 15, "#382e45");
+    rect(x - 7, y - 37, 17, 12, "#f4bf90");
+    rect(x - 4, y - 27, 10, 3, "#d58d74");
+    if (p.facing !== "north") {
+      const eye = p.facing === "west" ? -6 : p.facing === "east" ? 7 : -3;
+      rect(x + eye, y - 32, 2, 3, "#2a304c");
+      if (p.facing === "south") rect(x + 5, y - 32, 2, 3, "#2a304c");
+    } else rect(x - 7, y - 35, 17, 8, "#49364a");
+    rect(x - 11, y - 44, 25, 9, "#9c572e");
+    rect(x - 9, y - 45, 21, 8, "#ffd047");
+    rect(x - 6, y - 44, 14, 3, "#fff1a3");
+    rect(x - 13, y - 37, 29, 4, "#ffad35");
+    rect(x - 12, y - 37, 27, 1, "#ffe282");
   }
   return {
     draw(g, language) {
@@ -506,14 +656,12 @@ export function createRenderer(canvas, t) {
         [397, 459],
       ])
         signal(x, y, null, phase, true);
-      marker(640, 187, t("homeSign"), "#557b5d", g.time, true);
+      marker(640, 187, t("homeSign"), "#177d80", g.time, true);
       if (g.player.y > 455 && g.status !== "won")
-        marker(640, 558, t("startSign"), "#ae7d45", g.time);
-      const actors = [
-        ...g.vehicles.map((v) => ({ y: v.y, draw: () => vehicle(v, g.time) })),
-        { y: g.player.y, draw: () => player(g.player, g.time) },
-      ].sort((a, b) => a.y - b.y);
-      for (const a of actors) a.draw();
+        marker(g.player.x, g.player.y - 35, t("startSign"), "#b63463", g.time);
+      for (const v of [...g.vehicles].sort((a, b) => a.y - b.y))
+        vehicle(v, g.time);
+      player(g.player, g.time);
       if (g.collision) {
         const { x, y } = g.collision;
         ctx.strokeStyle = "#e9ba76";
@@ -522,9 +670,10 @@ export function createRenderer(canvas, t) {
         ctx.arc(x, y, 22, 0, Math.PI * 2);
         ctx.stroke();
       }
+      present();
     },
     gallery() {
-      rect(0, 0, 960, 640, "#b3b69b");
+      rect(0, 0, 960, 640, "#ead4ac");
       let row = 0;
       for (const kind of ["scooter", "sedan", "bus", "truck"]) {
         text(kind, 35, 80 + row * 145, 16, "#293f38");
@@ -548,6 +697,7 @@ export function createRenderer(canvas, t) {
         }
         row++;
       }
+      present();
     },
   };
 }

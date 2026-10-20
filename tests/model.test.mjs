@@ -59,11 +59,11 @@ test("traffic is deterministic and exactly one observable violation occurs per c
   assert.deepEqual(a.vehicles, b.vehicles);
   assert.equal(a.spawned.size, 11);
   assert.equal([...a.spawned].filter((k) => k.endsWith(":8")).length, 1);
-  const g = advance(play(), 18.9);
+  const g = advance(play(), 17.9);
   const runner = g.vehicles.find((v) => v.violator);
   assert.ok(runner);
   assert.ok(runner.x < 0);
-  advance(g, 3);
+  advance(g, 4);
   assert.ok(runner.x > LANES[0].stop);
   assert.equal(phaseAt(g.time).walk, true);
   assert.equal(g.status, "playing");
@@ -76,7 +76,7 @@ test("a cautious crossing is consistently beatable before the violating scooter 
     assert.ok(g.violationSeen);
   }
 });
-test("the warned scooter produces a reproducible collision for a late unobservant crossing", () => {
+test("the unannounced scooter produces a reproducible collision for a late unobservant crossing", () => {
   const g = advance(play(), 21);
   advance(g, 3.3, { ...noInput, up: true });
   assert.equal(g.status, "failed");
@@ -147,7 +147,7 @@ test("English and Traditional Chinese resources have matching nonempty keys and 
     "en",
   );
 });
-test("retry resets time, hazards, player and outcome", () => {
+test("retry resets time, traffic, player and outcome", () => {
   const g = advance(play(), 21);
   advance(g, 3.3, { ...noInput, up: true });
   const fresh = createGame();
@@ -164,4 +164,36 @@ test("waiting for the visible violator to pass also produces a safe crossing", (
   assert.ok(g.vehicles.find((v) => v.violator).x > 700);
   advance(g, 3.3, { up: true });
   assert.equal(g.status, "won");
+});
+
+test("enlarged character art does not change the 12 by 11 feet collision box", () => {
+  const g = play();
+  g.time = 18;
+  g.player = { x: 640, y: 340 };
+  assert.deepEqual(playerBounds(g.player), { x: 634, y: 335, w: 12, h: 11 });
+  g.vehicles = [createVehicle("sedan", 0, { x: 640, y: 305, speed: 0 })];
+  advance(g, 0.1);
+  assert.equal(g.status, "playing");
+  g.vehicles[0].y = 340;
+  advance(g, 0.1);
+  assert.equal(g.status, "failed");
+});
+test("violator gives at least four seconds of visible approach at a consistent speed", () => {
+  const g = advance(play(), 18.5);
+  const runner = g.vehicles.find((v) => v.violator);
+  assert.ok(runner.x > 0 && runner.x < 40);
+  const start = runner.x;
+  advance(g, 1);
+  assert.ok(Math.abs(runner.x - start - 135) < 0.01);
+  assert.ok((640 - start) / runner.speed > 4);
+  assert.equal(phaseAt(g.time).walk, true);
+});
+
+test("death headlines are exact and predictive hazard resources are removed", () => {
+  assert.equal(messages.en.failedTitle, "YOU DIED");
+  assert.equal(messages["zh-TW"].failedTitle, "歹勢，你鼠翹翹了");
+  for (const dictionary of Object.values(messages)) {
+    assert.equal(dictionary.hazardNote, undefined);
+    assert.equal(dictionary.violation, undefined);
+  }
 });
