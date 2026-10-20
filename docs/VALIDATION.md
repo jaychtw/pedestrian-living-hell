@@ -38,3 +38,9 @@ No reference images were attached, so comparison with them remains unavailable. 
 Human playtesting has not been performed. Recognition time, subjective art acceptance, dramatic impact, fairness perception and engagement cannot be proved by these checks. Only Chromium was run; Firefox/Safari, touch and audio are outside this correction. The single fixed scenario remains intentionally repeatable. Decorative furniture remains non-solid. No new map or gameplay system was added.
 
 The repository's existing GitHub Actions workflow deploys pushes to `main`; current deployment status is available in Actions. Local validation and deployment success are distinct, and this record describes the local checks above.
+
+## Live-check transport
+
+The native Chromium live check initially failed because its certificate store did not trust this cloud's HTTPS proxy CA. The platform's Node CA binding is usable: Playwright's HTTP client verified HTTPS and returned the actual published P0.1 page. The opt-in `PLH_USE_PLATFORM_CA=1` route uses that verified client to deliver the public responses to Chromium; neither client disables certificate checking. Local browser tests keep using normal browser transport. Live verification also caught one absolute import in the browser test harness; it now resolves relative to the project URL, as the application modules already do.
+
+All **12 browser checks also passed against the actual published P0.1 site** using that TLS-verified transport, including localized death, retry, safe crossing, unannounced violation, real keyboard movement and rendering. Live captures are in ignored `artifacts/live/`.

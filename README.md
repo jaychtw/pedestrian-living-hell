@@ -32,9 +32,13 @@ npm test
 npm run test:browser
 # The same browser suite can test the actual deployment:
 BASE_URL=https://jaychtw.github.io/pedestrian-living-hell/ SCREENSHOT_DIR=artifacts/live npm run test:browser
+# If the cloud proxy CA is trusted by Node but unavailable to Chromium:
+PLH_USE_PLATFORM_CA=1 BASE_URL=https://jaychtw.github.io/pedestrian-living-hell/ SCREENSHOT_DIR=artifacts/live npm run test:browser
 ```
 
-**16 logic tests and 12 Chromium checks passed locally.** The browser suite uses system Chromium at `/usr/bin/chromium` (override with `CHROMIUM_PATH`). `playwright-core` is the only development dependency and downloads no browser. Current-run screenshots go to ignored `artifacts/screenshots/` (`SCREENSHOT_DIR` can override it). Reviewed P0.1 captures live in `docs/screenshots/p01/`.
+**16 logic tests and 12 Chromium checks passed locally; all 12 browser checks also passed on the published site.** The opt-in `PLH_USE_PLATFORM_CA=1` transport delivers actual public-site responses through Playwright’s TLS-verifying Node client using the platform CA; certificate verification stays enabled.
+
+The browser suite uses system Chromium at `/usr/bin/chromium` (override with `CHROMIUM_PATH`). `playwright-core` is the only development dependency and downloads no browser. Current-run screenshots go to ignored `artifacts/screenshots/` (`SCREENSHOT_DIR` can override it). Reviewed P0.1 captures live in `docs/screenshots/p01/`.
 
 The suite covers bilingual start/death/success/retry, live language switching and persistence, unchanged feet collisions, safe crossing, reproducible violations, removal of predictive text and sprite markers, actual keyboard movement on red, player layering, responsive layouts and browser errors. See [validation](docs/VALIDATION.md) and [revision assessment](docs/P01-REVIEW.md).
 

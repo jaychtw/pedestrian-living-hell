@@ -1,4 +1,4 @@
-import { chromium } from "playwright-core";
+import { chromium, request } from "playwright-core";
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 const screenshotDir = process.env.SCREENSHOT_DIR || "artifacts/screenshots";
@@ -11,6 +11,7 @@ const browser = await chromium.launch({
 const baseURL = new URL(process.env.BASE_URL || "http://127.0.0.1:3000/").href;
 const errors = [];
 let checks = 0;
+let verifiedTransport;
 function check(label) {
   checks++;
   console.log(`PASS ${label}`);
@@ -20,6 +21,21 @@ try {
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 1,
   });
+  // Some cloud proxies supply their CA to Node, while Chromium's own user
+  // certificate store is unavailable. This opt-in route uses verified HTTPS
+  // responses from Playwright's Node client; it never ignores TLS errors.
+  if (process.env.PLH_USE_PLATFORM_CA === "1") {
+    verifiedTransport = await request.newContext({
+      ignoreHTTPSErrors: false,
+      ...(process.env.HTTPS_PROXY
+        ? { proxy: { server: process.env.HTTPS_PROXY } }
+        : {}),
+    });
+    await page.route(`${new URL(baseURL).origin}/**`, async (route) => {
+      const response = await verifiedTransport.fetch(route.request());
+      await route.fulfill({ response });
+    });
+  }
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());
@@ -172,7 +188,7 @@ try {
       new URL("src/render.js", location.href).href
     );
     const { createGame, createVehicle, playerBounds } = await import(
-      "/src/model.js"
+      new URL("src/model.js", location.href).href
     );
     const { messages } = await import(
       new URL("src/i18n.js", location.href).href
@@ -285,4 +301,5 @@ try {
   console.log(`${checks} browser checks passed.`);
 } finally {
   await browser.close();
+  await verifiedTransport?.dispose();
 }
