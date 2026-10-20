@@ -83,3 +83,9 @@ Recommended next work, **in priority order, without implementation**:
 3. Validate Firefox, Safari, keyboard focus and reduced-vision usability before considering additional scenarios.
 
 P0 stops here. P1 requires explicit authorization.
+
+## GitHub Pages deployment
+
+`.github/workflows/pages.yml` tests the game and publishes only `index.html` and `src/` on pushes to `main`. No Node server or dependency installation is needed on Pages. Relative asset paths support the project URL `/pedestrian-living-hell/`.
+
+Enable **Settings → Pages → Build and deployment → Source → GitHub Actions** in the repository once. The workflow then deploys each push to `main`; it can also be run manually from Actions. The intended address is `https://jaychtw.github.io/pedestrian-living-hell/`. A successful workflow and live check are required before treating that address as published.
