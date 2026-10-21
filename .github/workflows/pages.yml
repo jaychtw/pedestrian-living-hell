@@ -49,8 +49,9 @@ jobs:
         run: |
           CHROMIUM_PATH="$(node --input-type=module -e "import {chromium} from 'playwright-core';process.stdout.write(chromium.executablePath())")" npm run test:browser
       - name: Verify Firefox gameplay
-        run: |
-          FIREFOX_PATH="$(node --input-type=module -e "import {firefox} from 'playwright-core';process.stdout.write(firefox.executablePath())")" npm run test:firefox
+        env:
+          PLH_BROWSER: firefox
+        run: npm run test:browser
       - name: Prepare static site
         run: |
           mkdir _site

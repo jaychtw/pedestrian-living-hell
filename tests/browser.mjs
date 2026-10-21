@@ -1,13 +1,31 @@
-import { chromium, request } from "playwright-core";
+import { chromium, firefox, request } from "playwright-core";
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 const screenshotDir = process.env.SCREENSHOT_DIR || "artifacts/screenshots";
 await mkdir(screenshotDir, { recursive: true });
-const browser = await chromium.launch({
-  executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
-  headless: true,
-  args: ["--no-sandbox", "--disable-dev-shm-usage"],
+const browserName = process.env.PLH_BROWSER || "chromium";
+process.on("uncaughtExceptionMonitor", (error) => {
+  if (process.env.GITHUB_ACTIONS === "true") {
+    const detail = String(error.stack || error)
+      .replaceAll("%", "%25")
+      .replaceAll("\r", "%0D")
+      .replaceAll("\n", "%0A");
+    console.error(`::error title=${browserName} release check::${detail}`);
+  }
 });
+
+assert.ok(
+  ["chromium", "firefox"].includes(browserName),
+  "PLH_BROWSER must be chromium or firefox",
+);
+const browser =
+  browserName === "firefox"
+    ? await firefox.launch({ headless: true })
+    : await chromium.launch({
+        executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
+        headless: true,
+        args: ["--no-sandbox", "--disable-dev-shm-usage"],
+      });
 const baseURL = new URL(process.env.BASE_URL || "http://127.0.0.1:3000/").href;
 const errors = [];
 let checks = 0;
@@ -332,7 +350,7 @@ try {
   check("All 16 directional vehicle appearances render");
   assert.deepEqual(errors, []);
   check("No browser runtime, console or failed-request errors");
-  console.log(`${checks} browser checks passed.`);
+  console.log(`${checks} ${browserName} browser checks passed.`);
 } finally {
   await browser.close();
   await verifiedTransport?.dispose();

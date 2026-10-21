@@ -34,10 +34,12 @@ The local static-file server uses port **3000**; `PORT` can override it. No secr
 ```sh
 npm test                  # 21 logic tests
 npm run test:browser      # 13 Chromium checks; server running on 3000
-npm run test:firefox      # 7 Firefox checks; server running on 3000
+npm run test:firefox      # 7 native Firefox checks; server running on 3000
+# With the Playwright Firefox runtime installed:
+PLH_BROWSER=firefox npm run test:browser # the full 13-check suite in Firefox
 ```
 
-Browser tests use system Chromium at `/usr/bin/chromium` and Firefox at a standard installation path (or the prepared cloud cache). Override with `CHROMIUM_PATH` / `FIREFOX_PATH`. `playwright-core` is the sole development dependency; it does not download browsers during `npm ci`. CI installs its pinned browsers explicitly. The Firefox test uses native WebDriver BiDi and no extra npm dependency.
+Browser tests use system Chromium at `/usr/bin/chromium` and Firefox at a standard installation path (or the prepared cloud cache). Override with `CHROMIUM_PATH` / `FIREFOX_PATH`. `playwright-core` is the sole development dependency; it does not download browsers during `npm ci`. CI installs its pinned browsers explicitly. The native Firefox test uses WebDriver BiDi and no extra npm dependency. CI uses Playwright’s driver for its bundled Firefox and runs the same full 13-check browser suite as Chromium.
 
 Both test suites write captures into ignored `artifacts/`; reviewed release images are in `docs/screenshots/v1/`. `SCREENSHOT_DIR` can override the capture location. Deterministic scenarios explicitly use `?test`; ordinary play has no test hook. Real keyboard input is also exercised without test mode.
 

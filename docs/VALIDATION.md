@@ -40,7 +40,7 @@ The supplied reference collage was accessible for this release. Its shading, atm
 
 ## CI and public verification
 
-The Pages workflow installs locked tools and browser runtimes, runs model/Chromium/Firefox checks, stages only `index.html` and `src/`, and deploys after checks pass. It uses Ubuntu 24.04 and the Node 24 pin.
+The Pages workflow installs locked tools and browser runtimes, runs model/Chromium/Firefox checks, stages only `index.html` and `src/`, and deploys after checks pass. It uses Ubuntu 24.04 and the Node 24 pin. CI selects `PLH_BROWSER=firefox` for its bundled Playwright Firefox and runs the full 13-check browser suite; the separate 7-check native BiDi script validates system Firefox ESR. Each browser uses the driver supported by its distribution. No gameplay assertion is skipped for Firefox.
 
 `BASE_URL` supports project-subpath/public Chromium checks. When this cloud's Chromium store cannot trust its HTTPS proxy, `PLH_USE_PLATFORM_CA=1` retrieves actual public responses through Playwright's TLS-verifying Node client using the platform CA. Certificate verification remains enabled. Public verification and final deployment outcome are reported after the workflow completes; this record's local counts do not by themselves prove deployment.
 
