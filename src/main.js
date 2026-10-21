@@ -1,6 +1,6 @@
-import { messages, initialLanguage } from "./i18n.js";
-import { createGame, step, phaseAt, noInput } from "./model.js";
-import { createRenderer } from "./render.js";
+import { messages, initialLanguage } from "./i18n.js?v=1.0.0";
+import { createGame, step, phaseAt, noInput } from "./model.js?v=1.0.0";
+import { createRenderer } from "./render.js?v=1.0.0";
 let storage;
 try {
   storage = window.localStorage;
@@ -12,12 +12,13 @@ const canvas = document.querySelector("#game"),
   renderer = createRenderer(canvas, t),
   keys = new Set();
 const $ = (selector) => document.querySelector(selector);
+let windowFocused = true;
 let last = 0,
   previousStatus = "",
   previousUi = "";
 function localize() {
   document.documentElement.lang = language;
-  document.title = `${t("brand")} · P0.1`;
+  document.title = `${t("brand")} · v1.0`;
   $('[id="language"]').textContent = language === "en" ? "繁體中文" : "English";
   document
     .querySelectorAll("[data-i18n]")
@@ -42,9 +43,15 @@ function begin() {
 function updateUI() {
   const phase = phaseAt(game.time),
     time = Math.ceil(phase.left);
-  const ui = `${phase.walk}:${time}:${language}:${document.hidden}`;
+  const ui = `${phase.walk}:${time}:${language}:${document.hidden}:${windowFocused}`;
   if (ui !== previousUi) {
-    const label = t(document.hidden ? "paused" : phase.walk ? "walk" : "wait");
+    const label = t(
+      document.hidden || !windowFocused
+        ? "paused"
+        : phase.walk
+          ? "walk"
+          : "wait",
+    );
     if ($("#signal-label").textContent !== label)
       $("#signal-label").textContent = label;
     $("#signal-icon").style.color = phase.walk ? "#8df5a9" : "#ff9d74";
@@ -87,9 +94,11 @@ canvas.addEventListener("pointerdown", () =>
   canvas.focus({ preventScroll: true }),
 );
 window.addEventListener("keydown", (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (
-    e.target instanceof HTMLButtonElement ||
-    e.target instanceof HTMLAnchorElement
+    ["Enter", " "].includes(e.key) &&
+    (e.target instanceof HTMLButtonElement ||
+      e.target instanceof HTMLAnchorElement)
   )
     return;
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key))
@@ -101,7 +110,18 @@ window.addEventListener("keydown", (e) => {
   keys.add(e.key.toLowerCase());
 });
 window.addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
-window.addEventListener("blur", () => keys.clear());
+window.addEventListener("blur", () => {
+  windowFocused = false;
+  keys.clear();
+  last = performance.now();
+  updateUI();
+});
+window.addEventListener("focus", () => {
+  windowFocused = true;
+  keys.clear();
+  last = performance.now();
+  updateUI();
+});
 document.addEventListener("visibilitychange", () => {
   keys.clear();
   last = performance.now();
@@ -133,7 +153,7 @@ if (manual) {
 function frame(now) {
   const dt = last ? (now - last) / 1000 : 0;
   last = now;
-  if (!manual && !document.hidden) step(game, input(), dt);
+  if (!manual && !document.hidden && windowFocused) step(game, input(), dt);
   updateUI();
   renderer.draw(game, language);
   requestAnimationFrame(frame);

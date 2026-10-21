@@ -52,8 +52,8 @@ try {
     await page.locator("#overlay-title").textContent(),
     "One street from home.",
   );
-  assert.equal(await page.locator("#game").getAttribute("width"), "960");
-  assert.equal(await page.locator("#game").getAttribute("height"), "716");
+  assert.equal(await page.locator("#game").getAttribute("width"), "1920");
+  assert.equal(await page.locator("#game").getAttribute("height"), "1432");
   const playerVisibleAtOpening = await page.evaluate(() => {
     const c = document.querySelector("#game").getBoundingClientRect();
     const card = document
@@ -133,7 +133,7 @@ try {
   );
   await page.locator("#restart").click();
   await page.evaluate(() => {
-    window.p0Test.advance(21);
+    window.p0Test.advance(21.7);
     window.p0Test.advance(3.3, { up: true });
   });
   assert.equal(await page.evaluate(() => window.p0Test.game.status), "failed");
@@ -200,16 +200,20 @@ try {
     const g = createGame();
     g.vehicles = [createVehicle("scooter", 0, { x: 500, y: 300 })];
     r.draw(g, "en");
-    const normal = c.getContext("2d").getImageData(0, 0, 960, 716).data;
+    const normal = c
+      .getContext("2d")
+      .getImageData(0, 0, c.width, c.height).data;
     g.vehicles[0].violator = true;
     r.draw(g, "en");
-    const runner = c.getContext("2d").getImageData(0, 0, 960, 716).data;
+    const runner = c
+      .getContext("2d")
+      .getImageData(0, 0, c.width, c.height).data;
     const same = normal.every((v, i) => v === runner[i]);
     // Put a bus across the character and verify the character remains the final layer.
     g.vehicles = [createVehicle("bus", 0, { x: 640, y: 532 })];
     r.draw(g, "en");
     const pixel = Array.from(
-      c.getContext("2d").getImageData(636, 76 + 532 - 20, 1, 1).data,
+      c.getContext("2d").getImageData(638 * 2, (76 + 532 - 20) * 2, 1, 1).data,
     );
     return { same, pixel, bounds: playerBounds(g.player) };
   });
@@ -224,19 +228,47 @@ try {
   );
   await page.goto(baseURL);
   await page.locator("#action").click();
+  await page.locator("#language").click();
   await page.keyboard.down("ArrowUp");
   await page.waitForTimeout(1100);
   await page.keyboard.up("ArrowUp");
   assert.ok(await page.locator("#overlay").isHidden());
   assert.equal(await page.evaluate(() => window.p0Test), undefined);
   const moved = await page.locator("#game").evaluate((c) => {
-    const d = c.getContext("2d").getImageData(625, 76 + 370, 34, 150).data;
+    const d = c
+      .getContext("2d")
+      .getImageData(625 * 2, (76 + 370) * 2, 34 * 2, 150 * 2).data;
     for (let i = 0; i < d.length; i += 4)
       if (d[i] === 240 && d[i + 1] === 90 && d[i + 2] === 136) return true;
     return false;
   });
   assert.ok(moved);
-  check("Real arrow-key movement into the road on a red pedestrian signal");
+  check(
+    "Real arrow-key movement after changing language, without refocusing the canvas",
+  );
+  const pausedFrame = await page.evaluate(() => {
+    window.dispatchEvent(new Event("blur"));
+    return document.querySelector("#game").toDataURL();
+  });
+  assert.ok(
+    ["PAUSED", "已暫停"].includes(
+      await page.locator("#signal-label").textContent(),
+    ),
+  );
+  await page.waitForTimeout(180);
+  assert.equal(
+    await page.locator("#game").evaluate((c) => c.toDataURL()),
+    pausedFrame,
+  );
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await page.waitForTimeout(180);
+  assert.notEqual(
+    await page.locator("#game").evaluate((c) => c.toDataURL()),
+    pausedFrame,
+  );
+  check(
+    "Losing window focus freezes the scene; focus resumes it without held keys",
+  );
   const frames = await page.evaluate(
     () =>
       new Promise((resolve) => {
@@ -289,6 +321,8 @@ try {
     const c = document.createElement("canvas");
     c.width = 960;
     c.height = 716;
+    c.style.width = "960px";
+    c.style.height = "716px";
     document.body.replaceChildren(c);
     createRenderer(c, (k) => messages.en[k]).gallery();
   });

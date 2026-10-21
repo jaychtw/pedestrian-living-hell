@@ -1,46 +1,49 @@
-# P0.1 validation
+# v1.0 release validation
 
-Node 24.19.0, npm 11.9.0, playwright-core 1.58.2 and system Chromium. Native browser modules require no production build.
+Prepared with Node 24.19.0, npm 11.9.0, playwright-core 1.58.2, Chromium 154.0.8037.57 and Firefox ESR 153.5.0 on Linux. Node 24 is pinned in `.nvmrc`. No production bundling is required.
 
-## Executed checks
+## Model checks
 
-`npm test`: **16 passed, 0 failed, 0 skipped**. The original 13 logic checks remain, with the intentionally changed violation timing updated. Three checks were added for unchanged feet collision boundaries after art enlargement, four-plus seconds of visible constant-speed approach, and exact localized death headlines with predictive warning resources absent.
+`npm test`: **21 passed, 0 failed, 0 skipped**.
 
-The suite covers signal phases/clearance; all four classes stopping at red in all four directions; committed traffic clearing; reproducibility; early cautious crossing; late collision; illegal walking; solid buildings; diagonal speed/world bounds; following distance; translation parity/storage fallback; clean retry; and waiting for the runner before crossing.
+The P0.1 invariants remain: signal phases/clearance, four classes stopping at red in four directions, committed vehicles clearing, deterministic traffic, early cautious crossing, late collision, walking on red, solid buildings, diagonal speed/world bounds, following gap, localization/storage fallback, exact outcomes, retry reset, waiting for the violator, unchanged feet box and visible steady approach without predictive resources.
 
-`npm run test:browser`, with the server running: **12 checks passed**:
+v1.0 adds:
 
-1. English opening and normal traffic; the desktop opening card leaves the player visible.
-2. Immediate Chinese switching without reset and language persistence on reload.
-3. Reachable home and exact bilingual completion messages.
-4. Red-light runner crosses during WALK with no predictive panel or sidebar.
-5. Exact English/Chinese death headlines, selected-language copy, large single-line Chinese headline and visible keyboard retry.
-6. Waiting for the unannounced scooter to pass allows a safe crossing.
-7. Normal/violating scooters produce identical rendered pixels at the same position; the player renders above an overlapping bus; feet bounds are unchanged.
-8. Real keyboard movement on pedestrian red in ordinary animation mode.
-9. At least 30 animation frames over a one-second sample; observed approximately 61 on this instance. This is a smoke check, not a hardware benchmark.
-10. No horizontal overflow at 1280, 1024 and 720 pixels; the canvas remains the dominant element.
-11. All 16 directional vehicle appearances render in a review sheet.
-12. No browser runtime, console or failed-request errors.
+- Ten cycles with bounded traffic/spawn records and a visible violation in each cycle.
+- Repeated-cycle checks against new red-light entries by lawful vehicles.
+- Collision detection during a stalled animation frame.
+- Correct Taiwanese right-hand driving on both axes.
+- No overlap between lawful vehicle bodies through three cycles of the fixed timetable.
 
-Only intentionally superseded browser expectations changed: the old longer copy, sidebar, advance scooter warning and understated failure headline. The remaining P0 flows are retained.
+The lane correction intentionally moves the runner to the southern/eastbound lane; the reproducible late-departure fixture is now 21.7 seconds. Safe early and post-runner crossings remain verified.
 
-`BASE_URL` allows the same suite to exercise a project subpath or the GitHub Pages deployment. Screenshots are written to ignored `artifacts/screenshots/` or `SCREENSHOT_DIR`; reviewed captures were copied to `docs/screenshots/p01/`. Ordinary play has no test hook; deterministic browser scenarios explicitly use `?test`. Real input is separately checked without that hook.
+## Chromium
 
-## Visual inspection and corrections
+`npm run test:browser`: **13 checks passed**.
 
-Actual screenshots were opened at desktop display size and at 720px. Inspected the brighter active street, opening card, both death screens, Chinese glyphs, character contrast and sprite directions. An initial Chinese death heading left its final character on a separate line; font sizing was changed to follow the canvas width, and a single-line-height assertion now prevents that regression. The opening card was moved left on desktop so it does not cover the player.
+Covers the actual 1920 × 1432 Canvas, dominant desktop/720px layouts, visible player on opening, immediate/persistent language switching, safe arrival and exact completion copy, unannounced violation, both exact death headlines, single-line Chinese typography, retry via Enter, safe waiting, identical normal/runner art, player-last layering, unchanged hitbox, real key movement after a UI button, window-blur pause/focus resume, animation-loop smoke and no browser script/console/request errors. The measured one-second animation sample was around 61 frames; this is not a hardware benchmark.
 
-No reference images were attached, so comparison with them remains unavailable. [The review](P01-REVIEW.md) assesses composition, sprite quality and Taiwanese identity separately and records shortcomings against the five concerns in the brief. No claim is made that brighter colours alone satisfy the art direction.
+## Firefox
+
+`npm run test:firefox`: **7 checks passed**, using native WebDriver BiDi and a real Firefox ESR 153.5 process.
+
+Covers release loading/rendering, immediate and persistent languages, collision and exact localized deaths, retry/safe waiting/bilingual arrival, real keyboard events after UI focus, layout/no predictive panel and no script/console errors. Captures wait for CSS animations and paint frames; the settled death overlay was visually inspected.
+
+The prepared Firefox package came from Debian's security repository. InRelease signatures were checked against the installed Debian archive keyring; the Packages index and `.deb` were checked against their signed SHA-256 records before extraction under `/workspace/.cache/plh-firefox/`. No package signature or TLS verification was disabled. The isolated headless browser uses CI-compatible sandbox/cache settings; these are test-process settings, not game behavior.
+
+## Visual review
+
+Actual Chromium and Firefox captures were opened and inspected. Checks included road direction/arrows/stop lines, clear crosswalks and approaching traffic, player contrast, residential/garden destination, fine material detail, all 16 directional vehicle appearances, English/Chinese glyphs and full-contrast death/arrival screens. Review found two capture issues—cropping the new double-resolution sprite sheet and capturing Firefox before the death fade finished—which were corrected in the harness.
+
+The supplied reference collage was accessible for this release. Its shading, atmospheric palette and texture density influenced the art pass. Composition/sprite simplicity still falls below the richly illustrated references; no parity claim is made. Current images are in `docs/screenshots/v1/`; older P0/P0.1 images are historical.
+
+## CI and public verification
+
+The Pages workflow installs locked tools and browser runtimes, runs model/Chromium/Firefox checks, stages only `index.html` and `src/`, and deploys after checks pass. It uses Ubuntu 24.04 and the Node 24 pin.
+
+`BASE_URL` supports project-subpath/public Chromium checks. When this cloud's Chromium store cannot trust its HTTPS proxy, `PLH_USE_PLATFORM_CA=1` retrieves actual public responses through Playwright's TLS-verifying Node client using the platform CA. Certificate verification remains enabled. Public verification and final deployment outcome are reported after the workflow completes; this record's local counts do not by themselves prove deployment.
 
 ## Limits
 
-Human playtesting has not been performed. Recognition time, subjective art acceptance, dramatic impact, fairness perception and engagement cannot be proved by these checks. Only Chromium was run; Firefox/Safari, touch and audio are outside this correction. The single fixed scenario remains intentionally repeatable. Decorative furniture remains non-solid. No new map or gameplay system was added.
-
-The repository's existing GitHub Actions workflow deploys pushes to `main`; current deployment status is available in Actions. Local validation and deployment success are distinct, and this record describes the local checks above.
-
-## Live-check transport
-
-The native Chromium live check initially failed because its certificate store did not trust this cloud's HTTPS proxy CA. The platform's Node CA binding is usable: Playwright's HTTP client verified HTTPS and returned the actual published P0.1 page. The opt-in `PLH_USE_PLATFORM_CA=1` route uses that verified client to deliver the public responses to Chromium; neither client disables certificate checking. Local browser tests keep using normal browser transport. Live verification also caught one absolute import in the browser test harness; it now resolves relative to the project URL, as the application modules already do.
-
-All **12 browser checks also passed against the actual published P0.1 site** using that TLS-verified transport, including localized death, retry, safe crossing, unannounced violation, real keyboard movement and rendering. Live captures are in ignored `artifacts/live/`.
+Human enjoyment, first-glance recognition speed and perceived fairness were not measured in human playtests. The deterministic scenario remains learnable, including an early illegal crossing opportunity. Only the tested desktop engines are certified here; Safari, mobile/touch, audio and nonvisual spatial navigation are not certified or implemented. Branded Chrome/Edge installations were not separately exercised. No extra cities, secret vehicles, progression, campaign or major mechanic was added.

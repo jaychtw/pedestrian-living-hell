@@ -9,8 +9,8 @@ export const BUILDINGS = [
 ];
 export const HOME = { x: 612, y: 155, w: 66, h: 62 };
 export const LANES = [
-  { dir: "east", axis: "h", x: -85, y: 300, stop: 326 },
-  { dir: "west", axis: "h", x: 1045, y: 389, stop: 671 },
+  { dir: "east", axis: "h", x: -85, y: 389, stop: 326 },
+  { dir: "west", axis: "h", x: 1045, y: 300, stop: 671 },
   { dir: "south", axis: "v", x: 456, y: -85, stop: 179 },
   { dir: "north", axis: "v", x: 544, y: 725, stop: 517 },
 ];
@@ -103,9 +103,9 @@ const SCHEDULE = [
   { at: 1.2, kind: "bus", lane: 0 },
   { at: 2.7, kind: "truck", lane: 1 },
   { at: 5, kind: "sedan", lane: 2 },
-  { at: 5.6, kind: "bus", lane: 3 },
+  { at: 9, kind: "bus", lane: 3 },
   { at: 8, kind: "scooter", lane: 2 },
-  { at: 10, kind: "truck", lane: 3 },
+  { at: 8, kind: "truck", lane: 3 },
   { at: 17.8, kind: "scooter", lane: 0, violator: true, speed: 135 },
   { at: 23, kind: "truck", lane: 0 },
   { at: 24, kind: "sedan", lane: 1 },
@@ -174,6 +174,7 @@ export function step(g, input, elapsed) {
     const previous = g.time;
     g.time += dt;
     const cycle = Math.floor(g.time / CYCLE);
+    if (cycle !== Math.floor(previous / CYCLE)) g.spawned.clear();
     for (let c = Math.floor(previous / CYCLE); c <= cycle; c++)
       for (let i = 0; i < SCHEDULE.length; i++) {
         const entry = SCHEDULE[i],

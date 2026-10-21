@@ -77,7 +77,7 @@ test("a cautious crossing is consistently beatable before the violating scooter 
   }
 });
 test("the unannounced scooter produces a reproducible collision for a late unobservant crossing", () => {
-  const g = advance(play(), 21);
+  const g = advance(play(), 21.7);
   advance(g, 3.3, { ...noInput, up: true });
   assert.equal(g.status, "failed");
   assert.ok(
@@ -148,7 +148,7 @@ test("English and Traditional Chinese resources have matching nonempty keys and 
   );
 });
 test("retry resets time, traffic, player and outcome", () => {
-  const g = advance(play(), 21);
+  const g = advance(play(), 21.7);
   advance(g, 3.3, { ...noInput, up: true });
   const fresh = createGame();
   assert.equal(fresh.status, "start");
@@ -195,5 +195,82 @@ test("death headlines are exact and predictive hazard resources are removed", ()
   for (const dictionary of Object.values(messages)) {
     assert.equal(dictionary.hazardNote, undefined);
     assert.equal(dictionary.violation, undefined);
+  }
+});
+
+test("ten traffic cycles remain bounded with an observable violation in every cycle", () => {
+  const g = play();
+  const observed = new Set();
+  for (let frame = 0; frame < 300 * 60; frame++) {
+    step(g, noInput, 1 / 60);
+    assert.equal(g.status, "playing");
+    assert.ok(g.vehicles.length < 20);
+    assert.ok(g.spawned.size <= 11);
+    for (const v of g.vehicles)
+      if (v.violator && v.x > 600 && v.x < 650)
+        observed.add(Math.floor(g.time / 30));
+  }
+  assert.equal(observed.size, 10);
+});
+
+test("lawful vehicles do not newly cross a red stop line over repeated cycles", () => {
+  const g = play();
+  for (let frame = 0; frame < 90 * 60; frame++) {
+    const before = new Map(g.vehicles.map((v) => [v, { ...v }]));
+    step(g, noInput, 1 / 60);
+    for (const v of g.vehicles) {
+      const old = before.get(v);
+      if (!old || v.violator) continue;
+      const l = LANES[v.lane],
+        axis = l.axis === "h" ? "x" : "y",
+        sign = v.dir === "east" || v.dir === "south" ? 1 : -1;
+      const oldFront = old[axis] + (sign * old.length) / 2,
+        front = v[axis] + (sign * v.length) / 2;
+      if (
+        sign * (l.stop - oldFront) >= -0.01 &&
+        phaseAt(g.time).axis !== l.axis
+      )
+        assert.ok(sign * (front - l.stop) < 0.02);
+    }
+  }
+});
+
+test("substeps catch a vehicle collision during a stalled animation frame", () => {
+  const g = play();
+  g.time = 22;
+  g.player = { x: 640, y: 300 };
+  g.vehicles = [
+    createVehicle("scooter", 0, { x: 590, y: 300, speed: 300, violator: true }),
+  ];
+  step(g, noInput, 0.25);
+  assert.equal(g.status, "failed");
+  assert.ok(g.time < 22.25);
+});
+
+test("lanes consistently use Taiwan's right-hand traffic", () => {
+  assert.ok(
+    LANES[0].y > LANES[1].y,
+    "eastbound traffic stays south of westbound traffic",
+  );
+  assert.ok(
+    LANES[2].x < LANES[3].x,
+    "southbound traffic stays west of northbound traffic",
+  );
+});
+
+test("the fixed lawful timetable avoids crossing vehicle bodies", () => {
+  const g = play();
+  for (let frame = 0; frame < 90 * 120; frame++) {
+    step(g, noInput, 1 / 120);
+    for (let i = 0; i < g.vehicles.length; i++)
+      for (let j = i + 1; j < g.vehicles.length; j++) {
+        const a = g.vehicles[i],
+          b = g.vehicles[j];
+        if (!a.violator && !b.violator)
+          assert.ok(
+            !overlaps(vehicleBounds(a), vehicleBounds(b)),
+            `traffic overlap at ${g.time.toFixed(2)}: ${a.kind}/${a.dir} and ${b.kind}/${b.dir}`,
+          );
+      }
   }
 });
