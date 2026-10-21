@@ -5,6 +5,16 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import assert from "node:assert/strict";
+process.on("uncaughtExceptionMonitor", (error) => {
+  if (process.env.GITHUB_ACTIONS === "true") {
+    const detail = String(error.stack || error)
+      .replaceAll("%", "%25")
+      .replaceAll("\r", "%0D")
+      .replaceAll("\n", "%0A");
+    console.error(`::error title=Firefox release check::${detail}`);
+  }
+});
+
 const executable =
   process.env.FIREFOX_PATH ||
   [
