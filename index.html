@@ -1,82 +1,10 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="data:," />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#172c46" />
-    <title>Pedestrian's Living Hell · 行人地獄</title>
-    <link rel="stylesheet" href="./src/style.css?v=1.0.0" />
-  </head>
-  <body>
-    <main>
-      <header>
-        <a class="brand" href="./" aria-label="Pedestrian's Living Hell"
-          ><span class="brand-icon">行</span><span data-i18n="brand"></span
-        ></a>
-        <div class="header-end">
-          <span class="edition">v1.0</span
-          ><button id="language" type="button">繁體中文</button>
-        </div>
-      </header>
-      <section class="scene-shell" data-i18n-aria="sceneLabel">
-        <div class="canvas-wrap">
-          <canvas
-            id="game"
-            width="1920"
-            height="1432"
-            tabindex="0"
-            aria-describedby="controls-hint"
-          ></canvas>
-          <div class="hud" id="hud">
-            <div class="signal-state" role="status" aria-live="polite">
-              <span id="signal-icon" aria-hidden="true"
-                ><svg
-                  width="21"
-                  height="27"
-                  viewBox="0 0 21 27"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                >
-                  <circle
-                    cx="12"
-                    cy="4"
-                    r="2"
-                    fill="currentColor"
-                    stroke="none"
-                  />
-                  <path
-                    d="M11 9 L8 16 L5 24 M8 16 L13 19 L14 24 M10 10 L15 14 L18 14 M10 10 L6 10 L3 15"
-                  /></svg></span
-              ><strong id="signal-label"></strong
-              ><span id="countdown" aria-hidden="true"></span>
-            </div>
-            <span class="hud-goal" data-i18n="objective"></span>
-          </div>
-          <div
-            id="overlay"
-            role="dialog"
-            aria-labelledby="overlay-title"
-            aria-describedby="overlay-copy"
-          >
-            <div class="overlay-card">
-              <div class="eyebrow" id="overlay-kicker"></div>
-              <h1 id="overlay-title"></h1>
-              <p id="overlay-copy"></p>
-              <p id="opening-controls" data-i18n="controlsCopy"></p>
-              <button id="action" type="button"></button
-              ><small data-i18n="keyboardStart"></small>
-            </div>
-          </div>
-        </div>
-      </section>
-      <footer>
-        <span id="controls-hint" data-i18n="controlsHint"></span
-        ><button id="restart" data-i18n="restart" type="button"></button>
-      </footer>
-    </main>
-    <script type="module" src="./src/main.js?v=1.0.0"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101f21"><title>Pedestrian Living Hell · 行人地獄</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b191c;color:#f8edda;font-family:"Helvetica Neue",Arial,"PingFang TC",sans-serif}button{font:inherit;color:inherit;cursor:pointer;border:1px solid #84908a;background:#193035;border-radius:4px;padding:10px 15px;min-height:44px}button:hover,button:focus-visible{outline:2px solid #ffb777;outline-offset:2px}header,footer,.hud,.controls{display:flex;align-items:center;justify-content:space-between;gap:14px}main,header,footer{width:min(1240px,94vw);margin:auto}header{height:65px;border-bottom:1px solid #52605c}header strong{letter-spacing:.12em;font-size:.8rem}header strong:before{content:"";display:inline-block;width:16px;height:13px;vertical-align:middle;margin-right:10px;background:repeating-linear-gradient(110deg,#ecae73 0 3px,transparent 4px 6px)}nav{display:flex;gap:8px}nav button{font-size:.84rem}main{margin-top:18px}.stage{position:relative;isolation:isolate;overflow:hidden;border:1px solid #52605c;aspect-ratio:2.18;background:#13282c}.stage canvas{width:100%;height:100%;display:block}.cover{position:absolute;inset:0;display:flex;justify-content:flex-end;align-items:flex-start;flex-direction:column;padding:clamp(20px,4vw,64px);background:linear-gradient(90deg,rgba(6,17,20,.94),rgba(6,17,20,.65) 36%,transparent 77%),linear-gradient(0deg,#0b191cb3,transparent 60%),url(street.jpg) center/cover}.cover h1{font-family:Georgia,"Songti TC",serif;font-size:clamp(42px,6.7vw,100px);line-height:.94;font-weight:500;letter-spacing:-.055em;margin:14px 0}.cover p{max-width:37em;line-height:1.45;margin:0 0 16px}.eyebrow,.hud small,footer{font-family:ui-monospace,monospace;font-size:.76rem;letter-spacing:.08em}.eyebrow,.hud small{color:#ffc48a}.primary{background:#ffb87b;color:#182123;border:0;font-weight:700}.hud{padding:13px 0}.hud strong{margin-left:10px}.meter{width:min(24vw,220px);height:5px;background:#465857}.meter i{display:block;height:100%;background:#ffb87b}.controls{padding:13px 0;align-items:flex-start;min-height:70px}.controls p{margin:0;line-height:1.5}.pad{display:grid;grid-template-columns:repeat(4,46px);gap:4px}.pad button{touch-action:none;user-select:none;-webkit-user-select:none;font-size:18px}.panel{position:absolute;inset:0;display:grid;place-items:center;background:#091719b8;padding:18px}.card{width:min(450px,100%);background:#142a2d;border:1px solid #71827c;padding:clamp(16px,3vw,32px);box-shadow:0 18px 55px #0006}.card h2{font:normal clamp(24px,4vw,40px)/1.05 Georgia,"Songti TC",serif;margin:12px 0}.card p{line-height:1.5}.card button{margin:3px}footer{border-top:1px solid #52605c;padding:14px 0;color:#aec1ba}a{color:inherit} [hidden]{display:none!important}
+@media(max-width:700px){.stage{aspect-ratio:1.24}.cover h1{font-size:clamp(38px,9vw,62px)}.cover p{font-size:.88rem}.controls{flex-direction:column;gap:10px}.pad{width:100%;grid-template-columns:repeat(4,1fr)}header{height:56px}.hud strong{font-size:.88rem}.card p{margin:8px 0}footer{font-size:.66rem}.cover{padding:18px}.cover h1{margin:8px 0}.cover p{margin-bottom:10px}}
+</style>
+<header><strong>行人地獄</strong><nav><button id="sound"></button><button id="lang"></button><button id="pause" hidden></button></nav></header>
+<main><div class="hud"><div><small id="chapter"></small><strong id="location"></strong></div><div class="meter"><i id="progress"></i></div></div>
+<div class="stage"><canvas id="world" aria-label="Street playfield"></canvas><section class="cover" id="cover"><div class="eyebrow" id="stamp"></div><h1 id="title"></h1><p id="intro"></p><button class="primary" id="start"></button></section><section class="panel" id="panel" hidden><div class="card"><small class="eyebrow" id="tag"></small><h2 id="heading"></h2><p id="body"></p><button class="primary" id="action"></button><button id="home"></button></div></section></div>
+<div class="controls"><p id="hint" role="status"></p><div class="pad" id="pad" hidden></div></div></main><footer><span id="edition"></span><a href="https://kesq.com/entertainment/cnn-style/2022/12/05/taiwans-living-hell-traffic-is-a-tourism-problem-say-critics/" id="source"></a></footer><script src="game.js"></script><script src="paint.js"></script></html>
