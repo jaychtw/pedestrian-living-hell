@@ -1,0 +1,52 @@
+name: Publish game to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage the game
+        run: |
+          mkdir site
+          cp index.html game.js paint.js street.jpg site/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy
+        id: deploy
+        uses: actions/deploy-pages@v4
+      - name: Verify public game files
+        env:
+          PAGE_URL: ${{ steps.deploy.outputs.page_url }}
+        run: |
+          for asset in index.html game.js paint.js street.jpg; do
+            route="$asset"
+            if [ "$asset" = index.html ]; then route=""; fi
+            for attempt in {1..12}; do
+              url="${PAGE_URL%/}/${route}?rev=${GITHUB_SHA}&check=${attempt}"
+              if curl -fsSL --max-time 15 "$url" -o "$RUNNER_TEMP/live" && cmp -s "site/$asset" "$RUNNER_TEMP/live"; then
+                echo "Verified $asset"
+                break
+              fi
+              if [ "$attempt" = 12 ]; then echo "::error::Public $asset differs from release"; exit 1; fi
+              sleep 5
+            done
+          done
