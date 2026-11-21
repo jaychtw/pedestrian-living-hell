@@ -1,0 +1,68 @@
+name: Playtest crossing review build
+on:
+  push:
+    branches: [art/zhongxiao-higgsfield]
+    paths: [.github/workflows/playtest.yml]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: 050f14a5894bb12202f513fdec96836fbe7c39ba
+          path: review
+      - name: Playtest desktop and mobile
+        run: |
+          python -m pip -q install playwright
+          python -m http.server 8765 --directory review >/tmp/server.log 2>&1 &
+          cat > /tmp/test.py <<'PY'
+          from playwright.sync_api import sync_playwright
+          from pathlib import Path
+          with sync_playwright() as p:
+              browser=p.chromium.launch(channel='chrome',args=['--no-sandbox'])
+              page=browser.new_page(viewport={'width':1366,'height':820},device_scale_factor=1)
+              errors=[]
+              page.on('pageerror', lambda error: errors.append(str(error)))
+              page.goto('http://localhost:8765')
+              page.get_by_role('link',name='MODULE 1',exact=False).click()
+              page.locator('#start').click()
+              page.locator('header a').click()
+              page.get_by_role('link',name='MODULE 2',exact=False).click()
+              page.locator('#action').click()
+              page.wait_for_function("time>2.2")
+              page.screenshot(path='desktop.jpg',quality=85)
+              page.keyboard.down('w')
+              page.wait_for_timeout(200)
+              page.keyboard.up('w')
+              assert page.evaluate('player.z')>0
+              page.keyboard.press('p')
+              assert page.locator('#title').inner_text()=='Paused'
+              page.locator('#action').click()
+              page.locator('#lang').click()
+              assert page.locator('html').get_attribute('lang')=='zh-Hant'
+              phone=browser.new_context(viewport={'width':390,'height':844},has_touch=True,is_mobile=True)
+              m=phone.new_page()
+              m.on('pageerror', lambda error: errors.append(str(error)))
+              m.goto('http://localhost:8765/crossing/')
+              m.locator('#action').tap()
+              control=m.locator('[data-key=forward]').bounding_box()
+              cdp=phone.new_cdp_session(m)
+              cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':control['x']+15,'y':control['y']+16}]})
+              m.wait_for_timeout(300)
+              cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]})
+              assert m.evaluate('player.z')>0 and m.evaluate('keys.size')==0
+              m.wait_for_function("time>2.2")
+              m.screenshot(path='mobile.jpg',quality=85)
+              assert not errors,errors
+              print('Passed both module entry routes, desktop movement, pause, language toggle, mobile touch movement/release; no JavaScript exceptions.')
+              browser.close()
+          PY
+          python /tmp/test.py
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add desktop.jpg mobile.jpg
+          git commit -m "Record Chrome gameplay frames at desktop and phone sizes"
+          git push
