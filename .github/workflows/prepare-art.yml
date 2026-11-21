@@ -15,12 +15,10 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y imagemagick
           mkdir -p generated
-          curl -fsSL --retry 2 'https://d8j0ntlcm91z4.cloudfront.net/user_3J7S1gNlnMpXN9yy2mYkvTWAnbo/hf_20261121_102739_ebab63ce-c011-4bcd-add8-4abff0101cb2.png' -o /tmp/environment.png
-          convert /tmp/environment.png -resize '1920x1280>' -quality 95 generated/environment.webp
-          curl -fsSL --retry 2 'https://d8j0ntlcm91z4.cloudfront.net/user_3J7S1gNlnMpXN9yy2mYkvTWAnbo/hf_20261121_102900_b294523f-d37d-4fe0-944e-ac01d84be308.png' -o /tmp/vehicles.png
-          convert /tmp/vehicles.png -resize '1920x1280>' -quality 95 generated/vehicles.webp
-          curl -fsSL --retry 2 'https://d8j0ntlcm91z4.cloudfront.net/user_3J7S1gNlnMpXN9yy2mYkvTWAnbo/hf_20261121_103015_9eb3a700-8102-464b-ae31-efc6f2da2c62.png' -o /tmp/pedestrian.png
-          convert /tmp/pedestrian.png -resize '1920x1280>' -quality 95 generated/pedestrian.webp
+          curl -fsSL --retry 2 'https://d8j0ntlcm91z4.cloudfront.net/user_3J7S1gNlnMpXN9yy2mYkvTWAnbo/hf_20261121_103302_74a4b690-0f83-4406-bda3-dd006e0c9870.png' -o /tmp/input.png
+          convert /tmp/input.png -resize '1920x1280>' -quality 95 generated/crosswalk.webp
+          curl -fsSL --retry 2 'https://d8j0ntlcm91z4.cloudfront.net/user_3J7S1gNlnMpXN9yy2mYkvTWAnbo/hf_20261121_103358_53e496b9-716c-4244-af9b-39fa9f584394.png' -o /tmp/input.png
+          convert /tmp/input.png -resize '1920x1280>' -quality 95 generated/steps.webp
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           git add generated
