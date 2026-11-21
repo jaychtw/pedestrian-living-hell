@@ -35,7 +35,8 @@ function step(dt){
   stride+=(Math.abs(dx)+Math.abs(dz))*dt*7;
   look+=(axis('lookR','lookL')-look)*Math.min(1,dt*8);
   for(const car of traffic){
-    const nose=car.x*car.dir+(car.kind==='bus'?2.7:1.5);
+    const halfLength={bus:4.85,taxi:2.20,rider:.96}[car.kind];
+    const nose=car.x*car.dir+halfLength;
     const gap=-2.9-nose;
     const stopping=car.rule==='obey'&&walkSignal()&&gap>=-.05;
     const goal=stopping?Math.min(car.speed,Math.sqrt(6*Math.max(0,gap))):car.speed;
@@ -45,7 +46,7 @@ function step(dt){
     if(car.rule==='curb')car.z=18.4+clamp((9-car.x)/6,0,1)*1.35;
   }
   if(time>=sampleAt){history.push({p:{...player},cars:traffic.map(c=>({x:c.x,z:c.z,kind:c.kind}))});if(history.length>26)history.shift();sampleAt=time+.08}
-  culprit=traffic.find(c=>Math.abs(c.z-player.z)<(c.kind==='rider'?.48:.85)&&Math.abs(c.x-player.x)<(c.kind==='rider'?.78:c.kind==='bus'?2.7:1.55));
+  culprit=traffic.find(c=>Math.abs(c.z-player.z)<(c.kind==='rider'?.48:.85)&&Math.abs(c.x-player.x)<(c.kind==='rider'?.96:c.kind==='bus'?4.85:2.2));
   if(culprit){mode='replay';replayAt=0;keys.clear();ui();return}
   if(player.z>=finish){mode='won';keys.clear();ui();return}
   const near=traffic.find(c=>c.v>.5&&Math.abs(c.z-player.z)<4.2&&Math.abs(c.x-player.x)<12&&(player.x-c.x)*c.dir>0);
@@ -90,43 +91,55 @@ for(const key of ['left','forward','back','right','lookL','lookR']){
   b.onkeyup=b.onblur=()=>keys.delete(key);
 }
 function drawScene(w,h){
-  if(mode==='ready'){
-    const pic=art.cover, scale=Math.max(w/pic.width,h/pic.height);
-    ctx.drawImage(pic,(w-pic.width*scale)/2,(h-pic.height*scale)/2,pic.width*scale,pic.height*scale);return;
-  }
   if(mode==='replay'||mode==='lost'){drawReplay(w,h);return}
-  const horizon=h*.36, focal=Math.min(w*.9,h*1.4),camZ=player.z-3.2,camX=player.x*.75+.7;
-  const van=w*.5-look*w*.27;
-  function point(x,z){
-    const depth=Math.max(.5,z-camZ);
-    return {x:van+(x-camX)*focal/depth,y:horizon+h*2.15/depth,unit:focal/depth};
+  const plate=mode==='ready'?art.avenue:art.crosswalk;
+  // A single photographic plane anchors the curb, storefronts, road markings and shadows.
+  // Its native aspect ratio is preserved through framing, tracking and look controls.
+  const fit=Math.max(w/plate.width,h/plate.height);
+  const zoom=mode==='ready'?1:1.10+.40*player.z/finish;
+  const W=plate.width*fit*zoom,H=plate.height*fit*zoom;
+  const left=(w-W)*(.5+look*.22)+player.x*(w-W)*.025;
+  const top=(h-H)*.53;
+  ctx.drawImage(plate,left,top,W,H);
+  if(mode==='ready')return;
+  const horizon=.423,nearY=1.13,farY=.581;
+  const eyeHeight=1.58;
+  const nearDepth=finish*(farY-horizon)/(nearY-farY);
+  function foot(x,z){
+    const y=horizon+(nearY-horizon)*nearDepth/(nearDepth+z);
+    const scale=(y-horizon)*H/eyeHeight;
+    const lateralCamera=player.x*.26+look*.58;
+    const farScale=(farY-horizon)*H/eyeHeight;
+    return {x:left+W*.50+x*scale-lateralCamera*(scale-farScale),y:top+y*H,scale};
   }
-  const skyW=Math.max(w*1.75,horizon*3.1);
-  ctx.drawImage(art.avenue,(w-skyW)*.5-look*w*.12-player.x*3,0,skyW,horizon+4);
-  const surface=ctx.createLinearGradient(0,horizon,0,h);surface.addColorStop(0,'#7e7980');surface.addColorStop(.38,'#605d60');surface.addColorStop(1,'#262c32');ctx.fillStyle=surface;ctx.fillRect(0,horizon,w,h);
-  function band(z1,z2,x1,x2,color){
-    if(z2<camZ+.6)return;
-    const p=[point(x1,z1),point(x2,z1),point(x2,z2),point(x1,z2)];
-    ctx.fillStyle=color;ctx.beginPath();p.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.closePath();ctx.fill();
-  }
-  band(18,52,-100,100,'#918b83');band(17.85,18.1,-100,100,'#ded6c6');
-  for(let z=18.5;z<45;z+=1.1)band(z,z+.02,-90,90,'#645e60');
-  for(let z=1;z<18;z+=1.4)band(z,z+.63,-2.6,2.6,'#ded9cc');
-  for(let z of [4.5,8,14])for(let x=-32;x<32;x+=5)band(z,z+.08,x,x+2.5,'#d6c6a3');
-  ctx.save();ctx.globalAlpha=.15;ctx.fillStyle=ctx.createPattern(art.asphalt,'repeat');ctx.fillRect(0,horizon,w,h-horizon);ctx.restore();
   const actors=[...traffic,{...player,kind:'walker'}].sort((a,b)=>b.z-a.z);
-  for(const a of actors){
-    if(a.z<camZ+.65)continue;
-    const p=point(a.x,a.z),pic=art[a.kind];
-    if(a.kind==='walker'){
-      const sh=h*.55,sw=sh*pic.width/pic.height;
-      ctx.drawImage(pic,p.x-sw*.5,h-sh+Math.sin(stride)*2+4,sw,sh);continue;
-    }
-    const height=p.unit*({taxi:1.52,rider:1.68,bus:2.9})[a.kind],width=p.unit*({taxi:3.4,rider:1.5,bus:5.7})[a.kind];
-    ctx.save();ctx.translate(p.x,p.y);ctx.scale(a.dir,1);
-    ctx.fillStyle='#171e2580';ctx.beginPath();ctx.ellipse(0,0,width*.5,Math.max(1,height*.07),0,0,Math.PI*2);ctx.fill();
-    ctx.save();ctx.scale(1,-.32);ctx.globalAlpha=.16;ctx.drawImage(pic,-width/2,-height,width,height);ctx.restore();
-    ctx.drawImage(pic,-width/2,-height,width,height);ctx.restore();
+  for(const actor of actors){
+    const walking=actor.kind==='walker' && (keys.has('forward')||keys.has('back')||keys.has('left')||keys.has('right'));
+    const picture=art[actor.kind];
+    const p=foot(actor.x,actor.z);
+    const height=p.scale*({bus:3.1,taxi:1.52,rider:1.62,walker:1.76})[actor.kind];
+    const width=height*picture.width/picture.height;
+    if(p.x+width/2<0||p.x-width/2>w)continue;
+    ctx.save();ctx.translate(p.x,p.y);
+    if(actor.dir===-1)ctx.scale(-1,1);
+    // A small contact shadow and the same silhouette reflected into the wet surface.
+    ctx.save();ctx.scale(1,-.21);ctx.globalAlpha=.105;
+    ctx.drawImage(picture,-width/2,-height,width,height);ctx.restore();
+    const shadow=ctx.createRadialGradient(0,0,0,0,0,1);
+    shadow.addColorStop(0,'rgba(10,13,18,.48)');shadow.addColorStop(1,'rgba(10,13,18,0)');
+    ctx.save();ctx.scale(width*.55,Math.max(2,height*.046));ctx.fillStyle=shadow;
+    ctx.fillRect(-1,-1,2,2);ctx.restore();
+    if(walking){
+      // Keep the backpack steady while alternating the projected length of each leg.
+      const split=picture.height*.55, hip=-height*.45;
+      for(const side of [0,1]){
+        const phase=(1+Math.sin(stride)*(side?1:-1))*.5;
+        ctx.drawImage(picture,side*picture.width/2,split,picture.width/2,picture.height-split,
+          (side-1)*width/2,hip,width/2,height*.45*(1-.065*phase));
+      }
+      ctx.drawImage(picture,0,0,picture.width,split,-width/2,-height,width,height*.55+.5);
+    }else ctx.drawImage(picture,-width/2,-height,width,height);
+    ctx.restore();
   }
 }
 function drawReplay(w,h){
@@ -135,7 +148,7 @@ function drawReplay(w,h){
   const sx=x=>w/2+x*w/32,sy=z=>h*.91-z*h*.04;
   ctx.fillStyle='#475254';ctx.fillRect(sx(-2.6),0,w*5.2/32,h);
   for(let z=1;z<18;z+=1.4){ctx.fillStyle='#9aa19d';ctx.fillRect(sx(-2.6),sy(z),w*5.2/32,3)}
-  frame.cars.forEach((c,i)=>{ctx.fillStyle=traffic[i]===culprit?'#ffad70':'#a9b2b8';const width=w*(c.kind==='bus'?5.4:c.kind==='taxi'?3.1:1.55)/32;ctx.fillRect(sx(c.x)-width/2,sy(c.z)-5,width,10)});
+  frame.cars.forEach((c,i)=>{ctx.fillStyle=traffic[i]===culprit?'#ffad70':'#a9b2b8';const width=w*(c.kind==='bus'?9.7:c.kind==='taxi'?4.4:1.92)/32;ctx.fillRect(sx(c.x)-width/2,sy(c.z)-5,width,10)});
   ctx.fillStyle='#bbffdc';ctx.beginPath();ctx.arc(sx(frame.p.x),sy(frame.p.z),7,0,Math.PI*2);ctx.fill();
 }
 function frame(now){
@@ -148,6 +161,6 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 ui();
-Promise.all(['avenue','cover','asphalt','walker','bus','taxi','rider'].map(name=>new Promise((resolve,reject)=>{
+Promise.all(['avenue','crosswalk','walker','bus','taxi','rider'].map(name=>new Promise((resolve,reject)=>{
   const im=new Image();im.onload=()=>{art[name]=im;resolve()};im.onerror=reject;im.src=name+'.webp';
 }))).then(()=>{ready=true;$('action').disabled=false;requestAnimationFrame(frame)}).catch(()=>{$('message').textContent=t('Street artwork could not load. Reload this page to retry.','街景載入失敗，請重新整理頁面。')});
