@@ -12,6 +12,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Vendor generated artwork
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y imagemagick
           mkdir -p generated
           curl -fsSL --retry 2 'https://d8j0ntlcm91z4.cloudfront.net/user_3J7S1gNlnMpXN9yy2mYkvTWAnbo/hf_20261121_102739_ebab63ce-c011-4bcd-add8-4abff0101cb2.png' -o /tmp/environment.png
           convert /tmp/environment.png -resize '1920x1280>' -quality 95 generated/environment.webp
