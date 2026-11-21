@@ -25,7 +25,7 @@ jobs:
       - name: Stage the game
         run: |
           mkdir site
-          cp index.html game.js paint.js street.jpg site/
+          cp -R index.html classic.html game.js paint.js street.jpg crossing site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -37,7 +37,7 @@ jobs:
         env:
           PAGE_URL: ${{ steps.deploy.outputs.page_url }}
         run: |
-          for asset in index.html game.js paint.js street.jpg; do
+          for asset in index.html classic.html game.js paint.js street.jpg crossing/index.html crossing/game.js crossing/*.webp; do
             route="$asset"
             if [ "$asset" = index.html ]; then route=""; fi
             for attempt in {1..12}; do
